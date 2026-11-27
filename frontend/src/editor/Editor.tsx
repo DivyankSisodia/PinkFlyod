@@ -8,6 +8,7 @@ import { ExportDialog } from "./ExportDialog"
 import { GameplayPicker } from "./GameplayPicker"
 import { Inspector } from "./Inspector"
 import { IntroDialog } from "./IntroDialog"
+import { UploadDetails } from "./UploadDetails"
 import { MediaPanel } from "./MediaPanel"
 import { SceneStrip } from "./SceneStrip"
 import { TopBar } from "./TopBar"
@@ -18,6 +19,7 @@ export function Editor({ projectId }: { projectId: string }) {
   const [trim, setTrim] = useState<TrimTarget | null>(null)
   const [exporting, setExporting] = useState(false)
   const [introOpen, setIntroOpen] = useState(false)
+  const [uploadOpen, setUploadOpen] = useState(false)
   const [picking, setPicking] = useState<string | null>(null)
   const selected = useEditor((s) => s.selectedSceneId)
 
@@ -65,7 +67,7 @@ export function Editor({ projectId }: { projectId: string }) {
   if (!doc) return <div className="page-error">Opening…</div>
   return (
     <div className="editor">
-      <TopBar onExport={() => setExporting(true)} />
+      <TopBar onExport={() => setExporting(true)} onUpload={() => setUploadOpen(true)} />
       <MediaPanel onTrim={setTrim} />
       <main className="center"><Player projectId={projectId} /></main>
       <Inspector onTrim={setTrim} onPickGameplay={() => selected && setPicking(selected)} />
@@ -74,6 +76,7 @@ export function Editor({ projectId }: { projectId: string }) {
       {picking && <GameplayPicker sceneId={picking} onClose={() => setPicking(null)} />}
       {exporting && <ExportDialog onClose={() => setExporting(false)} />}
       {introOpen && <IntroDialog onClose={() => setIntroOpen(false)} />}
+      {uploadOpen && <UploadDetails onClose={() => setUploadOpen(false)} />}
     </div>
   )
 }

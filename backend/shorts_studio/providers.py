@@ -283,16 +283,23 @@ def _is_library(row: dict) -> bool:
     return row.get("category") in ("professional", "famous") or sharing.get("status") == "copied"
 
 
-def go_chat(config: dict, instructions: str, content: str | list[dict], session: str) -> str:
+def go_chat(config: dict, instructions: str, content: str | list[dict], session: str,
+            max_tokens: int = 16000) -> str:
+    """The model's reply text. Reasoning models spend most of ``max_tokens`` thinking before they answer (one draft
+    used 3,998 of 4,000 on reasoning and returned nothing), so the budget is generous; only the tokens used are billed."""
     response = _json("OpenCode Go", f"{GO}/openai/v1/chat/completions", {
         "Authorization": f"Bearer {config['OPENCODE_GO_API_KEY']}", "x-opencode-session": "ses_" + session[4:],
-    }, {"model": config["OPENCODE_GO_MODEL"], "max_completion_tokens": 4000, "messages": [
+    }, {"model": config["OPENCODE_GO_MODEL"], "max_completion_tokens": max_tokens, "messages": [
         {"role": "system", "content": instructions}, {"role": "user", "content": content},
     ]})
     try:
-        text = response["choices"][0]["message"]["content"].strip()
+        choice = response["choices"][0]
+        text = (choice["message"]["content"] or "").strip()
     except (IndexError, KeyError, TypeError, AttributeError):
-        text = ""
+        choice, text = {}, ""
+    if not text and isinstance(choice, dict) and choice.get("finish_reason") == "length":
+        raise ProviderError(f"{config['OPENCODE_GO_MODEL']} used its whole answer budget thinking and returned no "
+                            "text. Try again, or choose a model that answers more directly in AI settings.")
     return text
 
 

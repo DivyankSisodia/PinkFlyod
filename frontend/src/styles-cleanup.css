@@ -73,3 +73,43 @@
   padding: 2px 8px;
   font-size: 12px;
 }
+
+/* Upload details */
+.upload-dialog {
+  width: min(720px, 94vw);
+}
+
+.upload-fields h3 {
+  margin: 12px 0 4px;
+}
+
+.upload-fields input,
+.upload-fields textarea {
+  width: 100%;
+}
+
+.title-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.title-options button {
+  text-align: left;
+  font-size: 12.5px;
+}
+
+.title-options button.on {
+  border-color: var(--accent);
+}
+
+.upload-sources {
+  margin-top: 12px;
+  font-size: 12.5px;
+}
+
+.upload-sources ul {
+  padding-left: 18px;
+  margin: 4px 0;
+}

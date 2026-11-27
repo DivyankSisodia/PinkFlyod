@@ -9,7 +9,7 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, ValidationError
 
-from . import intro, providers
+from . import intro, providers, publish
 from .config import Settings
 from .db import Database
 from .ids import new_id
@@ -182,6 +182,23 @@ def install(app: FastAPI, *, settings: Settings, db: Database, jobs: JobManager,
             return {"script": script, "country": body.country}
 
         return {"job_id": jobs.submit("script_draft", work, pool="media")}
+
+    @app.post("/api/projects/{project_id}/publish-draft")
+    def publish_draft(project_id: str, body: IntroRequest):
+        try:
+            loaded = store.load(project_id)
+        except (ProjectNotFound, ValueError):
+            raise HTTPException(404, "That project doesn't exist.") from None
+        if loaded.doc["revision"] != body.revision:
+            raise HTTPException(409, "Save or reload the latest project before writing upload details.")
+        if not any(s["enabled"] for s in loaded.doc["scenes"]):
+            raise HTTPException(422, "Add a scene to the timeline first.")
+        config = ai.read()
+        if not config.get("OPENCODE_GO_API_KEY") or not config.get("OPENCODE_GO_MODEL"):
+            raise HTTPException(422, "Save an OpenCode Go API key and writing model in AI settings first.")
+        job_id = jobs.submit("publish_draft", lambda ctx: publish.draft(settings, config, loaded.doc, body.notes, ctx),
+                             project_id=project_id, pool="media")
+        return {"job_id": job_id}
 
     @app.post("/api/projects/{project_id}/intro-draft")
     def intro_draft(project_id: str, body: IntroRequest):

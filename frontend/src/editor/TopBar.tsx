@@ -7,7 +7,7 @@ const LABEL: Record<SaveState, string> = {
   conflict: "Changed in another tab", readonly: "Read-only",
 }
 
-export function TopBar({ onExport }: { onExport: () => void }) {
+export function TopBar({ onExport, onUpload }: { onExport: () => void; onUpload: () => void }) {
   const doc = useEditor((s) => s.doc)!
   const saveState = useEditor((s) => s.saveState)
   const saveError = useEditor((s) => s.saveError)
@@ -23,9 +23,9 @@ export function TopBar({ onExport }: { onExport: () => void }) {
     <header className="topbar">
       <a href="#/" className="back" title="All projects">← Projects</a>
       <input className="title-input" value={title ?? doc.title} aria-label="Project title" data-testid="title"
-             onChange={(e) => setTitle(e.target.value)}
-             onBlur={() => { if (title !== null) apply((d) => ops.setTitle(d, title)); setTitle(null) }}
-             onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
+        onChange={(e) => setTitle(e.target.value)}
+        onBlur={() => { if (title !== null) apply((d) => ops.setTitle(d, title)); setTitle(null) }}
+        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
       <span className={`save ${saveState}`} title={saveError ?? ""} data-testid="save-state">{LABEL[saveState]}</span>
       {saveState === "conflict" && <button onClick={() => location.reload()}>Reload</button>}
       <span className="grow" />
@@ -36,6 +36,8 @@ export function TopBar({ onExport }: { onExport: () => void }) {
         {warnings > 0 && <span className="badge warn">{warnings} note{warnings > 1 ? "s" : ""}</span>}
       </span>
       <a href="#/activity" className="back" target="_blank" rel="noopener" title="Open job activity in a new tab">Activity</a>
+      <button onClick={onUpload} disabled={saveState === "readonly"} data-testid="upload-details"
+        title="Title, description and YouTube tags">Upload details</button>
       <button className="primary" onClick={onExport} disabled={saveState === "readonly"} data-testid="export">Export MP4</button>
     </header>
   )

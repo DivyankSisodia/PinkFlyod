@@ -249,3 +249,65 @@ def test_free_plan_library_voice_is_explained_not_called_a_credit_problem(client
     quota = HTTPError(error.url, 402, "Payment Required", {}, io.BytesIO(json.dumps(
         {"detail": {"status": "quota_exceeded", "message": "No credits."}}).encode()))
     assert "insufficient credits" in providers._http_error("ElevenLabs", error.url, quota)
+
+
+@needs_ffmpeg
+def test_upload_details_use_the_video_and_live_search_data(client, monkeypatch, landscape_silent):
+    from shorts_studio import publish
+    monkeypatch.setenv("OPENCODE_GO_API_KEY", "test-go-key")
+    monkeypatch.setenv("OPENCODE_GO_MODEL", "test-vision-model")
+    calls = []
+
+    def fake_json(provider, url, headers, payload=None):
+        if url.endswith("/v1/models"):
+            return {"data": [{"id": "test-vision-model", "modalities": {"input": ["text", "image/jpeg"]}}]}
+        calls.append(payload)
+        if len(calls) == 1:
+            reply = 'Sure! ```json\n{"summary": "Colour bands sweep past a moving marker.", ' \
+                    '"search_phrases": ["color bars test", "test pattern"]}\n```'
+        else:
+            reply = json.dumps({
+                "titles": ["The Color Bars Test Nobody Expected 🌈", "Watch This Test Pattern Move #shorts"],
+                "description": "Colour bands race past a marker.\nCould you watch this all day?",
+                "hashtags": ["#colorbars", "test pattern", "shorts"],
+                "tags": ["color bars test", "Color Bars Test", "test pattern", "made up tag", "rainbow, stripes"],
+                "trends_used": ["color bars test pattern", "not a real trend"]})
+        return {"choices": [{"message": {"content": reply}}]}
+
+    monkeypatch.setattr(providers, "_json", fake_json)
+    monkeypatch.setattr(publish, "youtube_suggestions", lambda phrase, geo: [f"{phrase}", f"{phrase} 4k"])
+    monkeypatch.setattr(publish, "google_trends", lambda geo: [{"query": "color bars test pattern", "traffic": "200+",
+                                                                "published": "Thu, 26 Nov 2026 22:00:00 -0800"}])
+    project = client.post("/api/projects", json={"paths": [str(landscape_silent)], "title": "Bands"}).json()["project"]
+    url = f"/api/projects/{project['id']}/publish-draft"
+    assert client.post(url, json={"revision": 99}).status_code == 409
+    job, stages = wait(client, client.post(url, json={"revision": project["revision"], "notes": "for kids"}))
+    assert job["status"] == "done", job
+    r = job["result"]
+
+    # Call 1 sees the frames; call 2 is text only and carries the real suggestions and trends.
+    first, second = calls
+    parts = first["messages"][1]["content"]
+    assert sum(p["type"] == "image_url" for p in parts) == r["frames_used"] >= 1
+    assert "Project title: Bands" in parts[0]["text"] and "for kids" in parts[0]["text"]
+    written = second["messages"][1]["content"]
+    assert isinstance(written, str) and "color bars test 4k" in written and "color bars test pattern" in written
+    assert "Colour bands sweep past a moving marker." in written
+
+    assert r["titles"] == ["The Color Bars Test Nobody Expected 🌈 #shorts", "Watch This Test Pattern Move #shorts"]
+    assert r["description"].startswith("Colour bands race past a marker.")
+    assert "#colorbars #testpattern #shorts" in r["description"]
+    assert [t["text"] for t in r["tags"]] == ["color bars test", "test pattern", "made up tag", "rainbow stripes"]
+    assert [t["searched"] for t in r["tags"]] == [True, True, False, False]
+    assert sum(len(t["text"]) for t in r["tags"]) + len(r["tags"]) - 1 <= 500
+    assert [t["query"] for t in r["trends_used"]] == ["color bars test pattern"]    # invented trend dropped
+    assert r["searches"][0]["geo"] == "US" and r["collected_at"].endswith("Z")
+    assert "Looking up YouTube searches and trends" in stages
+
+
+def test_upload_details_text_from_a_chatty_model_is_parsed():
+    from shorts_studio.jobs import JobError
+    from shorts_studio.publish import _json_object
+    assert _json_object('Here you go: {"a": {"b": 1}} hope it helps {"x": 2}') == {"a": {"b": 1}}
+    with pytest.raises(JobError):
+        _json_object("no json here")

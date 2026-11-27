@@ -113,3 +113,14 @@ def test_log_rotates(monkeypatch, log_file):
     names = sorted(p.name for p in log_file.parent.glob(ai_log.FILE_NAME + "*"))
     assert names == [ai_log.FILE_NAME, *(f"{ai_log.FILE_NAME}.{i}" for i in range(1, 4))]
     assert all(KEY not in p.read_text(encoding="utf-8") for p in log_file.parent.glob(ai_log.FILE_NAME + "*"))
+
+
+def test_reasoning_model_that_runs_out_of_tokens_gets_a_clear_error(monkeypatch, log_file):
+    reply = {"choices": [{"finish_reason": "length", "message": {"role": "assistant", "content": ""}}],
+             "usage": {"completion_tokens": 16000, "completion_tokens_details": {"reasoning_tokens": 15998}}}
+    opener = FakeOpener(FakeResponse(200, json.dumps(reply).encode()))
+    monkeypatch.setattr(providers, "build_opener", lambda *_: opener)
+    with pytest.raises(providers.ProviderError, match="used its whole answer budget thinking"):
+        providers.go_chat(config(), "Write.", "topic", "job_01ABCDEFGHJKMNPQRSTVWXYZ00")
+    sent = json.loads(opener.requests[0].data)
+    assert sent["max_completion_tokens"] == 16000

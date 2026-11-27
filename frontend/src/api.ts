@@ -132,6 +132,8 @@ export const api = {
     call<{ options: ProviderOption[] }>("GET", `/api/providers/${provider}/options?kind=${kind}`),
   checkOpenCodeAccess: () => call<{ ok: boolean }>("GET", "/api/providers/opencode/access"),
   draftScript: (topic: string, country: string) => call<{ job_id: string }>("POST", "/api/drafts/topic", { topic, country }),
+  draftPublish: (projectId: string, revision: number, notes: string) =>
+    call<{ job_id: string }>("POST", `/api/projects/${projectId}/publish-draft`, { revision, notes }),
   draftIntro: (projectId: string, revision: number, notes: string) =>
     call<{ job_id: string }>("POST", `/api/projects/${projectId}/intro-draft`, { revision, notes }),
   addGameplay: (paths: string[], tags: string[]) =>

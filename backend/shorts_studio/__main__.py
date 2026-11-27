@@ -21,6 +21,23 @@ def _open_when_ready(url: str) -> None:
             time.sleep(0.2)
 
 
+def _already_running(url: str) -> bool | None:
+    """None: the port is free. True: Shorts Studio answers there. False: something else holds the port."""
+    import json
+    import socket
+    from urllib.parse import urlparse
+    u = urlparse(url)
+    with socket.socket() as s:
+        s.settimeout(0.5)
+        if s.connect_ex((u.hostname, u.port)) != 0:
+            return None
+    try:
+        with urllib.request.urlopen(url + "api/health", timeout=2) as r:
+            return json.loads(r.read()).get("ok") is True
+    except (OSError, ValueError):
+        return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="shorts-studio")
     parser.add_argument("--no-browser", action="store_true", help="don't open a browser window")
@@ -42,6 +59,15 @@ def main() -> None:
 
     from .app import create_app
     url = f"http://127.0.0.1:{settings.port}/"
+    running = _already_running(url)
+    if running is not None:
+        if running:
+            print(f"Shorts Studio is already running at {url}" + ("" if args.no_browser else "; opening it."))
+            if not args.no_browser:
+                webbrowser.open(url)
+            return
+        raise SystemExit(f"Port {settings.port} is used by another program. Close it, or start Shorts Studio on "
+                         f"another port: python -m shorts_studio --port {settings.port + 10}")
     if not args.no_browser:
         threading.Thread(target=_open_when_ready, args=(url,), daemon=True).start()
     print(f"Shorts Studio {url}  (data: {settings.data_dir})")

@@ -561,6 +561,24 @@ export function setHook(doc: Project, text: string | null, duration?: number) {
   }
 }
 
+/** Upload details (title, description, tags) kept with the project. Generated titles are marked "editorial". */
+export function setPublishMeta(doc: Project, patch: {
+  title?: string; titleKind?: "user" | "editorial"; description?: string; tags?: string[]; at: string
+}) {
+  const pm = (doc.publish_meta ??= {})
+  if (patch.title !== undefined) {
+    const text = patch.title.trim().slice(0, 100)
+    const rest = (pm.title_drafts ?? []).filter((t) => t.text !== text)
+    pm.title_drafts = text ? [{ text, kind: patch.titleKind ?? "user", created_at: patch.at }, ...rest].slice(0, 10) : rest
+  }
+  if (patch.description !== undefined) pm.description = patch.description.slice(0, 5000)
+  if (patch.tags !== undefined) {
+    const seen = new Set<string>()
+    pm.tags = patch.tags.map((t) => t.trim().slice(0, 100)).filter((t) => t && !seen.has(t.toLowerCase()) &&
+      seen.add(t.toLowerCase())).slice(0, 60)
+  }
+}
+
 export function setWatermark(doc: Project, text: string | null, opacity?: number) {
   if (text === null || !text.trim()) { doc.overlays.watermark = null; return }
   doc.overlays.watermark = {

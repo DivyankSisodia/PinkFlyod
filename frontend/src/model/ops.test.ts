@@ -261,6 +261,25 @@ describe("Phase 2 edits", () => {
   })
 })
 
+describe("upload details", () => {
+  it("saves title, description and tags with the project, newest title first, without duplicates", () => {
+    const at = "2026-11-27T07:00:00Z"
+    const doc = produce(example("quick-short-13s"), (d) => {
+      ops.setPublishMeta(d, { title: "First idea #shorts", titleKind: "editorial", at })
+      ops.setPublishMeta(d, {
+        title: "My own title #shorts", titleKind: "user", description: "Line one.\n\n#shorts",
+        tags: ["gta 6", " GTA 6 ", "", "surprise gift", "x".repeat(150)], at
+      })
+      ops.setPublishMeta(d, { title: "First idea #shorts", titleKind: "editorial", at })
+    })
+    expectValid(doc)
+    const pm = doc.publish_meta!
+    expect(pm.title_drafts!.map((t) => t.text)).toEqual(["First idea #shorts", "My own title #shorts"])
+    expect(pm.tags).toEqual(["gta 6", "surprise gift", "x".repeat(100)])
+    expect(pm.description).toBe("Line one.\n\n#shorts")
+  })
+})
+
 describe("opening voice", () => {
   const take = (seconds: number) => ({
     ...example("narrated-explainer").scenes[0].narration!.take!, id: "tk_openinghook1", duration_s: seconds,
