@@ -1,0 +1,220 @@
+{
+  "schema": "shorts-studio.project",
+  "schema_version": 1,
+  "id": "prj_01JDXEXPLAINRAIN",
+  "title": "Why Vancouver rain is mostly drizzle",
+  "created_at": "2026-11-25T19:20:00Z",
+  "updated_at": "2026-11-25T19:48:03Z",
+  "revision": 27,
+  "origin": { "entry": "create_from_scratch", "preset": "story", "input": "script" },
+  "output": {
+    "width": 1080, "height": 1920, "fps": 30,
+    "video": { "codec": "h264", "encoder": "libx264", "crf": 20, "preset": "medium" },
+    "audio": {
+      "codec": "aac", "bitrate_kbps": 192, "sample_rate": 48000,
+      "loudness": { "enabled": true, "target_lufs": -14, "true_peak_dbtp": -1.5, "lra": 11 }
+    },
+    "when_silent": "omit_audio_stream",
+    "max_duration_s": null,
+    "safe_area": {
+      "profile": "youtube_shorts", "reference_px": [1080, 1920],
+      "insets_px": { "top": 320, "bottom": 400, "left": 60, "right": 180 }
+    }
+  },
+  "audience": {
+    "country": "CA", "region": "CA-BC", "language": "en-CA", "spelling": "en-CA", "units": "metric",
+    "localization_log": [
+      { "at": "2026-11-25T19:30:00Z", "from_region": "US-WA", "to_region": "CA-BC", "hunks_accepted": 4, "hunks_rejected": 1 }
+    ]
+  },
+  "compliance": {
+    "rights": { "confirmed": false, "confirmed_at": null, "statement_version": 1 },
+    "reused_content_warning": { "dismissed_at": null }
+  },
+  "voice": { "provider": "edge", "voice_id": "en-CA-LiamNeural", "rate_pct": 5 },
+  "sources": {
+    "src_01JDXSTILLHARBOUR": {
+      "kind": "image", "origin": "local_file", "ownership": "own",
+      "path": "C:/Users/ADMIN/Pictures/harbour-rain.jpg", "display_name": "harbour-rain.jpg",
+      "url": null, "attribution": null, "gameplay_clip_id": null, "transcript": null,
+      "fingerprint": {
+        "size_bytes": 3120044, "mtime": 1795960000.0,
+        "sample_sha256": "ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44",
+        "duration_s": null, "width": 4032, "height": 3024, "fps": null, "rotation": 0,
+        "has_audio": false, "video_codec": null, "audio_codec": null
+      },
+      "imported_at": "2026-11-25T19:21:00Z"
+    },
+    "src_01JDXSTOCKDRIZZLE": {
+      "kind": "video", "origin": "stock", "ownership": "licensed",
+      "path": "data:media/stock/pexels-1234567.mp4", "display_name": "Drizzle on a window (Pexels)",
+      "url": "https://www.pexels.com/video/1234567/",
+      "attribution": { "provider": "Pexels", "author": "Example Creator", "license": "Pexels License", "page_url": "https://www.pexels.com/video/1234567/" },
+      "gameplay_clip_id": null, "transcript": null,
+      "fingerprint": {
+        "size_bytes": 8820011, "mtime": 1795960100.0,
+        "sample_sha256": "ff6677889900aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55",
+        "duration_s": 14.0, "width": 1080, "height": 1920, "fps": 25, "rotation": 0,
+        "has_audio": false, "video_codec": "h264", "audio_codec": null
+      },
+      "imported_at": "2026-11-25T19:22:00Z"
+    }
+  },
+  "segments": {
+    "seg_01JDXDRIZZLE": { "source_id": "src_01JDXSTOCKDRIZZLE", "in_s": 0.0, "out_s": 14.0, "label": "Drizzle", "created_by": "whole_source", "pick": null }
+  },
+  "scenes": [
+    {
+      "id": "scn_01JDXLINE1", "name": "Rain days", "enabled": true,
+      "duration": { "driver": "narration", "fixed_s": null, "tail_pad_s": 0.25 },
+      "layout": { "type": "full", "background_color": "#000000" },
+      "layers": {
+        "primary": {
+          "type": "image", "source_id": "src_01JDXSTILLHARBOUR", "motion": "ken_burns_in",
+          "reframe": { "mode": "fill", "focus": { "x": 0.5, "y": 0.5 }, "zoom": 1.0 }
+        },
+        "secondary": null
+      },
+      "narration": {
+        "text": "Vancouver gets rain on about 160 days a year.",
+        "voice": null, "offset_s": 0,
+        "take": {
+          "id": "tk_01JDXLINE1TAKE2", "method": "tts", "provider": "edge", "voice_id": "en-CA-LiamNeural", "rate_pct": 5,
+          "text_sha256": "6b24a875474e3a7b85078afbb2730f34a7fc92c4822dfffef42e07619bdf209e",
+          "audio_path": "data:cache/takes/6b/6b24a875474e3a7b.wav", "duration_s": 2.9,
+          "words": [
+            ["Vancouver", 0.05, 0.6], ["gets", 0.6, 0.8], ["rain", 0.8, 1.1], ["on", 1.1, 1.2], ["about", 1.2, 1.45],
+            ["160", 1.45, 2.05], ["days", 2.05, 2.3], ["a", 2.3, 2.36], ["year.", 2.36, 2.8]
+          ],
+          "timing": "native", "created_at": "2026-11-25T19:31:10Z"
+        }
+      },
+      "audio": {
+        "primary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "secondary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "narration": { "enabled": true, "gain_db": 0, "duck_under_narration": false },
+        "music": { "enabled": true }
+      },
+      "captions": { "mode": "inherit", "manual_cues": [], "word_edits": [] },
+      "overlays": { "rank_badge": { "visible": false }, "label": { "visible": false, "text": null }, "reddit_card": null, "texts": [] },
+      "rank": { "include": false },
+      "transition_in": { "type": "cut", "duration_s": 0 },
+      "sfx": []
+    },
+    {
+      "id": "scn_01JDXLINE2", "name": "Mostly drizzle", "enabled": true,
+      "duration": { "driver": "narration", "fixed_s": null, "tail_pad_s": 0.25 },
+      "layout": { "type": "full", "background_color": "#000000" },
+      "layers": {
+        "primary": {
+          "type": "segment", "segment_id": "seg_01JDXDRIZZLE",
+          "reframe": { "mode": "fill", "focus": { "x": 0.5, "y": 0.5 }, "zoom": 1.0 },
+          "playback": { "speed": 1, "when_short": "loop", "loop_crossfade_s": 0.2, "continue_from_previous": false }
+        },
+        "secondary": null
+      },
+      "narration": {
+        "text": "But most of it is light drizzle, not downpours.",
+        "voice": null, "offset_s": 0,
+        "take": {
+          "id": "tk_01JDXLINE2TAKE1", "method": "tts", "provider": "edge", "voice_id": "en-CA-LiamNeural", "rate_pct": 5,
+          "text_sha256": "f45e7d10b51c14677055c3e07e9ee776be98581e78e59b5d678b3dec9c6c9811",
+          "audio_path": "data:cache/takes/f4/f45e7d10b51c1467.wav", "duration_s": 2.6,
+          "words": [
+            ["But", 0.05, 0.2], ["most", 0.2, 0.45], ["of", 0.45, 0.55], ["it", 0.55, 0.65], ["is", 0.65, 0.78],
+            ["light", 0.78, 1.05], ["drizzle,", 1.05, 1.6], ["not", 1.75, 1.95], ["downpours.", 1.95, 2.5]
+          ],
+          "timing": "native", "created_at": "2026-11-25T19:24:40Z"
+        }
+      },
+      "audio": {
+        "primary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "secondary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "narration": { "enabled": true, "gain_db": 0, "duck_under_narration": false },
+        "music": { "enabled": true }
+      },
+      "captions": { "mode": "inherit", "manual_cues": [], "word_edits": [] },
+      "overlays": { "rank_badge": { "visible": false }, "label": { "visible": false, "text": null }, "reddit_card": null, "texts": [] },
+      "rank": { "include": false },
+      "transition_in": { "type": "crossfade", "duration_s": 0.3 },
+      "sfx": []
+    },
+    {
+      "id": "scn_01JDXLINE3", "name": "Packing tip", "enabled": true,
+      "duration": { "driver": "narration", "fixed_s": null, "tail_pad_s": 0.6 },
+      "layout": { "type": "full", "background_color": "#000000" },
+      "layers": {
+        "primary": {
+          "type": "text_card",
+          "text_card": {
+            "text": "Rain jacket: yes\nUmbrella: optional",
+            "background": "#0F2027",
+            "align": "center",
+            "style": { "font_family": "Anton", "font_size_px": 110, "color": "#FFFFFF", "stroke_color": "#000000", "stroke_px": 0, "box_color": null, "uppercase": true }
+          },
+          "reframe": { "mode": "fill", "focus": { "x": 0.5, "y": 0.5 }, "zoom": 1.0 }
+        },
+        "secondary": null
+      },
+      "narration": {
+        "text": "So pack a light rain jacket and leave the umbrella at home.",
+        "voice": null, "offset_s": 0,
+        "take": {
+          "id": "tk_01JDXLINE3TAKE1", "method": "tts", "provider": "edge", "voice_id": "en-CA-LiamNeural", "rate_pct": 5,
+          "text_sha256": "3f0a09cb2a8e4e36d686cc7f8bae1a6192b6451f63cfc28d889d66168717f700",
+          "audio_path": "data:cache/takes/3f/3f0a09cb2a8e4e36.wav", "duration_s": 3.3,
+          "words": [
+            ["So", 0.05, 0.2], ["pack", 0.2, 0.45], ["a", 0.45, 0.5], ["light", 0.5, 0.75], ["rain", 0.75, 1.0],
+            ["jacket", 1.0, 1.4], ["and", 1.5, 1.62], ["leave", 1.62, 1.85], ["the", 1.85, 1.95], ["umbrella", 1.95, 2.5],
+            ["at", 2.5, 2.6], ["home.", 2.6, 3.15]
+          ],
+          "timing": "native", "created_at": "2026-11-25T19:24:44Z"
+        }
+      },
+      "audio": {
+        "primary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "secondary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "narration": { "enabled": true, "gain_db": 0, "duck_under_narration": false },
+        "music": { "enabled": true }
+      },
+      "captions": { "mode": "inherit", "manual_cues": [], "word_edits": [] },
+      "overlays": { "rank_badge": { "visible": false }, "label": { "visible": false, "text": null }, "reddit_card": null, "texts": [] },
+      "rank": { "include": false },
+      "transition_in": { "type": "cut", "duration_s": 0 },
+      "sfx": []
+    }
+  ],
+  "ranking": {
+    "enabled": false, "direction": "descending",
+    "badge": {
+      "format": "#{n}", "position": "top_left",
+      "style": { "font_family": "Anton", "font_size_px": 96, "color": "#FFFFFF", "stroke_color": "#000000", "stroke_px": 8, "box_color": null, "uppercase": true }
+    },
+    "reveal": "current_only"
+  },
+  "audio": {
+    "music": null,
+    "ducking": { "enabled": true, "depth_db": -12, "attack_ms": 120, "release_ms": 350 },
+    "edge_fade_ms": 20
+  },
+  "captions": {
+    "enabled": true,
+    "default_mode": "narration_words",
+    "style": {
+      "preset": "karaoke",
+      "text": { "font_family": "Anton", "font_size_px": 84, "color": "#FFFFFF", "stroke_color": "#000000", "stroke_px": 7, "box_color": null, "uppercase": true },
+      "active_color": "#FFE11A", "emphasis_color": "#4ADE80", "max_words": 3, "max_chars": 18
+    },
+    "anchor_y": 0.72,
+    "emphasis_words": ["drizzle"]
+  },
+  "overlays": { "hook": null, "title_bar": null, "watermark": null },
+  "publish_meta": {
+    "title_drafts": [
+      { "text": "Vancouver rain, explained in 10 seconds", "kind": "editorial", "created_at": "2026-11-25T19:40:00Z" }
+    ],
+    "description": "",
+    "tags": ["vancouver", "bc weather", "travel tips"],
+    "source_links": []
+  }
+}

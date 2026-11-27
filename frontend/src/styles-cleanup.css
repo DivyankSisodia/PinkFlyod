@@ -1,0 +1,75 @@
+/* Deleting old exports and projects. */
+.recent-wrap {
+  position: relative;
+}
+
+.recent-wrap .recent-item {
+  height: 100%;
+}
+
+.recent-delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 7px;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.recent-wrap:hover .recent-delete,
+.recent-delete:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .recent-delete {
+    opacity: 1;
+  }
+}
+
+.delete-dialog {
+  width: min(520px, 94vw);
+}
+
+.previous-exports {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.previous-exports h3 {
+  margin: 6px 0;
+}
+
+.previous-exports ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.previous-exports li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-2);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12.5px;
+}
+
+.previous-exports li .row {
+  margin: 0;
+  gap: 4px;
+}
+
+.previous-exports li button {
+  padding: 2px 8px;
+  font-size: 12px;
+}

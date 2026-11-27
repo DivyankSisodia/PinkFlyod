@@ -1,0 +1,176 @@
+{
+  "schema": "shorts-studio.project",
+  "schema_version": 1,
+  "id": "prj_01JDXSILENTCOUNT",
+  "title": "Silent countdown test",
+  "created_at": "2026-11-25T19:00:00Z",
+  "updated_at": "2026-11-25T19:06:12Z",
+  "revision": 9,
+  "origin": { "entry": "edit_existing", "preset": "ranking", "input": "files" },
+  "output": {
+    "width": 1080, "height": 1920, "fps": 30,
+    "video": { "codec": "h264", "encoder": "libx264", "crf": 20, "preset": "medium" },
+    "audio": {
+      "codec": "aac", "bitrate_kbps": 192, "sample_rate": 48000,
+      "loudness": { "enabled": true, "target_lufs": -14, "true_peak_dbtp": -1.5, "lra": 11 }
+    },
+    "when_silent": "omit_audio_stream",
+    "max_duration_s": null,
+    "safe_area": {
+      "profile": "youtube_shorts", "reference_px": [1080, 1920],
+      "insets_px": { "top": 320, "bottom": 400, "left": 60, "right": 180 }
+    }
+  },
+  "audience": { "country": "US", "region": null, "language": "en-US", "spelling": "en-US", "units": "imperial" },
+  "compliance": {
+    "rights": { "confirmed": false, "confirmed_at": null, "statement_version": 1 },
+    "reused_content_warning": { "dismissed_at": null }
+  },
+  "voice": { "provider": "none", "voice_id": "", "rate_pct": 0 },
+  "sources": {
+    "src_01JDXTESTRED": {
+      "kind": "video", "origin": "generated", "ownership": "own",
+      "path": "data:testmedia/landscape-red-12s.mp4", "display_name": "landscape-red-12s.mp4",
+      "url": null, "attribution": null, "gameplay_clip_id": null, "transcript": null,
+      "fingerprint": {
+        "size_bytes": 1200345, "mtime": 1795900000.0,
+        "sample_sha256": "aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900",
+        "duration_s": 12.0, "width": 1920, "height": 1080, "fps": 30, "rotation": 0,
+        "has_audio": true, "video_codec": "h264", "audio_codec": "aac"
+      },
+      "imported_at": "2026-11-25T19:00:10Z"
+    },
+    "src_01JDXTESTGREEN": {
+      "kind": "video", "origin": "generated", "ownership": "own",
+      "path": "data:testmedia/landscape-green-12s.mp4", "display_name": "landscape-green-12s.mp4",
+      "url": null, "attribution": null, "gameplay_clip_id": null, "transcript": null,
+      "fingerprint": {
+        "size_bytes": 1199871, "mtime": 1795900001.0,
+        "sample_sha256": "bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900aa11",
+        "duration_s": 12.0, "width": 1920, "height": 1080, "fps": 30, "rotation": 0,
+        "has_audio": true, "video_codec": "h264", "audio_codec": "aac"
+      },
+      "imported_at": "2026-11-25T19:00:11Z"
+    },
+    "src_01JDXTESTBLUE": {
+      "kind": "video", "origin": "generated", "ownership": "own",
+      "path": "data:testmedia/landscape-blue-12s.mp4", "display_name": "landscape-blue-12s.mp4",
+      "url": null, "attribution": null, "gameplay_clip_id": null, "transcript": null,
+      "fingerprint": {
+        "size_bytes": 1201002, "mtime": 1795900002.0,
+        "sample_sha256": "cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900aa11bb22",
+        "duration_s": 12.0, "width": 1920, "height": 1080, "fps": 30, "rotation": 0,
+        "has_audio": true, "video_codec": "h264", "audio_codec": "aac"
+      },
+      "imported_at": "2026-11-25T19:00:12Z"
+    }
+  },
+  "segments": {
+    "seg_01JDXREDCUT": { "source_id": "src_01JDXTESTRED", "in_s": 1.0, "out_s": 4.0, "label": "Red", "created_by": "manual", "pick": null },
+    "seg_01JDXGREENCUT": { "source_id": "src_01JDXTESTGREEN", "in_s": 2.0, "out_s": 5.5, "label": "Green", "created_by": "manual", "pick": null },
+    "seg_01JDXBLUECUT": { "source_id": "src_01JDXTESTBLUE", "in_s": 0.5, "out_s": 4.5, "label": "Blue", "created_by": "manual", "pick": null }
+  },
+  "scenes": [
+    {
+      "id": "scn_01JDXENTRYBLUE", "name": "Blue", "enabled": true,
+      "duration": { "driver": "primary", "fixed_s": null, "tail_pad_s": 0 },
+      "layout": { "type": "full", "background_color": "#000000" },
+      "layers": {
+        "primary": {
+          "type": "segment", "segment_id": "seg_01JDXBLUECUT",
+          "reframe": { "mode": "fill", "focus": { "x": 0.5, "y": 0.5 }, "zoom": 1.0 },
+          "playback": { "speed": 1, "when_short": "freeze_last", "loop_crossfade_s": 0, "continue_from_previous": false }
+        },
+        "secondary": null
+      },
+      "narration": null,
+      "audio": {
+        "primary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "secondary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "narration": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "music": { "enabled": false }
+      },
+      "captions": { "mode": "off", "manual_cues": [], "word_edits": [] },
+      "overlays": { "rank_badge": { "visible": true }, "label": { "visible": true, "text": null }, "reddit_card": null, "texts": [] },
+      "rank": { "include": true },
+      "transition_in": { "type": "cut", "duration_s": 0 },
+      "sfx": []
+    },
+    {
+      "id": "scn_01JDXENTRYRED", "name": "Red", "enabled": true,
+      "duration": { "driver": "primary", "fixed_s": null, "tail_pad_s": 0 },
+      "layout": { "type": "full", "background_color": "#000000" },
+      "layers": {
+        "primary": {
+          "type": "segment", "segment_id": "seg_01JDXREDCUT",
+          "reframe": { "mode": "fill", "focus": { "x": 0.5, "y": 0.5 }, "zoom": 1.0 },
+          "playback": { "speed": 1, "when_short": "freeze_last", "loop_crossfade_s": 0, "continue_from_previous": false }
+        },
+        "secondary": null
+      },
+      "narration": null,
+      "audio": {
+        "primary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "secondary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "narration": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "music": { "enabled": false }
+      },
+      "captions": { "mode": "off", "manual_cues": [], "word_edits": [] },
+      "overlays": { "rank_badge": { "visible": true }, "label": { "visible": true, "text": null }, "reddit_card": null, "texts": [] },
+      "rank": { "include": true },
+      "transition_in": { "type": "cut", "duration_s": 0 },
+      "sfx": []
+    },
+    {
+      "id": "scn_01JDXENTRYGREEN", "name": "Green", "enabled": true,
+      "duration": { "driver": "primary", "fixed_s": null, "tail_pad_s": 0 },
+      "layout": { "type": "full", "background_color": "#000000" },
+      "layers": {
+        "primary": {
+          "type": "segment", "segment_id": "seg_01JDXGREENCUT",
+          "reframe": { "mode": "fill", "focus": { "x": 0.5, "y": 0.5 }, "zoom": 1.0 },
+          "playback": { "speed": 1, "when_short": "freeze_last", "loop_crossfade_s": 0, "continue_from_previous": false }
+        },
+        "secondary": null
+      },
+      "narration": null,
+      "audio": {
+        "primary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "secondary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "narration": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "music": { "enabled": false }
+      },
+      "captions": { "mode": "off", "manual_cues": [], "word_edits": [] },
+      "overlays": { "rank_badge": { "visible": true }, "label": { "visible": true, "text": null }, "reddit_card": null, "texts": [] },
+      "rank": { "include": true },
+      "transition_in": { "type": "cut", "duration_s": 0 },
+      "sfx": []
+    }
+  ],
+  "ranking": {
+    "enabled": true,
+    "direction": "descending",
+    "badge": {
+      "format": "#{n}", "position": "top_left",
+      "style": { "font_family": "Anton", "font_size_px": 96, "color": "#FFFFFF", "stroke_color": "#000000", "stroke_px": 8, "box_color": null, "uppercase": true }
+    },
+    "reveal": "current_only"
+  },
+  "audio": {
+    "music": null,
+    "ducking": { "enabled": true, "depth_db": -12, "attack_ms": 120, "release_ms": 350 },
+    "edge_fade_ms": 20
+  },
+  "captions": {
+    "enabled": false,
+    "default_mode": "off",
+    "style": {
+      "preset": "bold",
+      "text": { "font_family": "Anton", "font_size_px": 84, "color": "#FFFFFF", "stroke_color": "#000000", "stroke_px": 7, "box_color": null, "uppercase": true },
+      "active_color": "#FFE11A", "emphasis_color": null, "max_words": 3, "max_chars": 18
+    },
+    "anchor_y": 0.72,
+    "emphasis_words": []
+  },
+  "overlays": { "hook": null, "title_bar": null, "watermark": null }
+}

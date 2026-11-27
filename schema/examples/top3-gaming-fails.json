@@ -1,0 +1,338 @@
+{
+  "schema": "shorts-studio.project",
+  "schema_version": 1,
+  "app_version": "0.1.0",
+  "id": "prj_01JDX3TOP3FAILS",
+  "title": "Top 3 funniest gaming fails",
+  "created_at": "2026-11-25T18:02:11Z",
+  "updated_at": "2026-11-25T18:41:37Z",
+  "revision": 42,
+  "origin": { "entry": "edit_existing", "preset": "ranking", "input": "files" },
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "video": { "codec": "h264", "encoder": "libx264", "crf": 20, "preset": "medium" },
+    "audio": {
+      "codec": "aac",
+      "bitrate_kbps": 192,
+      "sample_rate": 48000,
+      "loudness": { "enabled": true, "target_lufs": -14, "true_peak_dbtp": -1.5, "lra": 11 }
+    },
+    "when_silent": "omit_audio_stream",
+    "max_duration_s": null,
+    "safe_area": {
+      "profile": "youtube_shorts",
+      "reference_px": [1080, 1920],
+      "insets_px": { "top": 320, "bottom": 400, "left": 60, "right": 180 }
+    }
+  },
+  "audience": { "country": "BOTH", "region": null, "language": "en-US", "spelling": "en-US", "units": "both" },
+  "compliance": {
+    "rights": { "confirmed": false, "confirmed_at": null, "statement_version": 1 },
+    "reused_content_warning": { "dismissed_at": null }
+  },
+  "voice": { "provider": "edge", "voice_id": "en-US-AndrewNeural", "rate_pct": 0 },
+  "sources": {
+    "src_01JDXFAILROCKET": {
+      "kind": "video",
+      "origin": "local_file",
+      "ownership": "own",
+      "path": "C:/Users/ADMIN/Videos/Captures/rocket-jump-fail.mp4",
+      "display_name": "rocket-jump-fail.mp4",
+      "url": null,
+      "attribution": null,
+      "gameplay_clip_id": null,
+      "transcript": null,
+      "fingerprint": {
+        "size_bytes": 48210331, "mtime": 1795862400.0,
+        "sample_sha256": "3b7e1c0f9a2d4e6b8c0a1f3e5d7b9c2a4e6f8a0b2c4d6e8f0a1b3c5d7e9f1a2b",
+        "duration_s": 61.2, "width": 1920, "height": 1080, "fps": 60, "rotation": 0,
+        "has_audio": true, "video_codec": "h264", "audio_codec": "aac"
+      },
+      "imported_at": "2026-11-25T18:03:00Z"
+    },
+    "src_01JDXFAILLADDER": {
+      "kind": "video",
+      "origin": "local_file",
+      "ownership": "own",
+      "path": "C:/Users/ADMIN/Videos/Captures/ladder-fail.mp4",
+      "display_name": "ladder-fail.mp4",
+      "url": null,
+      "attribution": null,
+      "gameplay_clip_id": null,
+      "transcript": null,
+      "fingerprint": {
+        "size_bytes": 39977120, "mtime": 1795862460.0,
+        "sample_sha256": "9c4f2a8e1b7d3f5a0c6e2b8d4f1a7c3e9b5d0f2a6c8e1b3d5f7a9c0e2b4d6f8a",
+        "duration_s": 74.9, "width": 1920, "height": 1080, "fps": 60, "rotation": 0,
+        "has_audio": true, "video_codec": "h264", "audio_codec": "aac"
+      },
+      "imported_at": "2026-11-25T18:03:05Z"
+    },
+    "src_01JDXFAILBOSS": {
+      "kind": "video",
+      "origin": "local_file",
+      "ownership": "own",
+      "path": "C:/Users/ADMIN/Videos/Captures/boss-wipe.mp4",
+      "display_name": "boss-wipe.mp4",
+      "url": null,
+      "attribution": null,
+      "gameplay_clip_id": null,
+      "transcript": null,
+      "fingerprint": {
+        "size_bytes": 25013377, "mtime": 1795862520.0,
+        "sample_sha256": "e1d3c5b7a9f0e2d4c6b8a0f1e3d5c7b9a1f2e4d6c8b0a2f3e5d7c9b1a3f4e6d8",
+        "duration_s": 22.4, "width": 1920, "height": 1080, "fps": 30, "rotation": 0,
+        "has_audio": true, "video_codec": "h264", "audio_codec": "aac"
+      },
+      "imported_at": "2026-11-25T18:03:09Z"
+    },
+    "src_01JDXGAMEPARKOUR": {
+      "kind": "video",
+      "origin": "gameplay_library",
+      "ownership": "own",
+      "path": "data:gameplay/gpc_01JDWPARKOUR01/parkour-run-01.mp4",
+      "display_name": "parkour-run-01.mp4",
+      "url": null,
+      "attribution": null,
+      "gameplay_clip_id": "gpc_01JDWPARKOUR01",
+      "transcript": null,
+      "fingerprint": {
+        "size_bytes": 182334001, "mtime": 1795776000.0,
+        "sample_sha256": "5a7c9e1b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b1d3f5a7c",
+        "duration_s": 600.0, "width": 1920, "height": 1080, "fps": 60, "rotation": 0,
+        "has_audio": true, "video_codec": "h264", "audio_codec": "aac"
+      },
+      "imported_at": "2026-11-25T18:20:44Z"
+    },
+    "src_01JDXMUSICLOFI": {
+      "kind": "audio",
+      "origin": "generated",
+      "ownership": "own",
+      "path": "data:music/sample-lofi-loop-01.wav",
+      "display_name": "Sample lo-fi loop 01 (bundled, royalty-free)",
+      "url": null,
+      "attribution": null,
+      "gameplay_clip_id": null,
+      "transcript": null,
+      "fingerprint": {
+        "size_bytes": 5292044, "mtime": 1795700000.0,
+        "sample_sha256": "0f2e4d6c8b0a1f3e5d7c9b1a2f4e6d8c0b2a3f5e7d9c1b3a4f6e8d0c2b4a5f7e",
+        "duration_s": 30.0, "width": null, "height": null, "fps": null, "rotation": 0,
+        "has_audio": true, "video_codec": null, "audio_codec": "pcm_s16le"
+      },
+      "imported_at": "2026-11-25T18:05:00Z"
+    }
+  },
+  "segments": {
+    "seg_01JDXROCKETJUMP": {
+      "source_id": "src_01JDXFAILROCKET", "in_s": 12.4, "out_s": 17.1,
+      "label": "Rocket jump into the ceiling", "created_by": "manual", "pick": null
+    },
+    "seg_01JDXLADDERSLIP": {
+      "source_id": "src_01JDXFAILLADDER", "in_s": 40.0, "out_s": 45.5,
+      "label": "Ladder betrayal", "created_by": "manual", "pick": null
+    },
+    "seg_01JDXBOSSWIPE": {
+      "source_id": "src_01JDXFAILBOSS", "in_s": 3.2, "out_s": 9.0,
+      "label": "Wiped by the tutorial boss", "created_by": "manual", "pick": null
+    },
+    "seg_01JDXPARKOURA": {
+      "source_id": "src_01JDXGAMEPARKOUR", "in_s": 214.0, "out_s": 218.0,
+      "label": "Parkour stretch", "created_by": "gameplay_pick",
+      "pick": { "strategy": "random_nonrepeating", "seed": 771203, "picked_at": "2026-11-25T18:21:02Z" }
+    }
+  },
+  "scenes": [
+    {
+      "id": "scn_01JDXRANK3ROCKET",
+      "name": "Rocket jump",
+      "enabled": true,
+      "duration": { "driver": "primary", "fixed_s": null, "tail_pad_s": 0 },
+      "layout": { "type": "full", "background_color": "#000000" },
+      "layers": {
+        "primary": {
+          "type": "segment",
+          "segment_id": "seg_01JDXROCKETJUMP",
+          "reframe": { "mode": "fill", "focus": { "x": 0.56, "y": 0.5 }, "zoom": 1.0 },
+          "playback": { "speed": 1, "when_short": "freeze_last", "loop_crossfade_s": 0, "continue_from_previous": false }
+        },
+        "secondary": null
+      },
+      "narration": null,
+      "audio": {
+        "primary": { "enabled": true, "gain_db": 0, "duck_under_narration": false },
+        "secondary": { "enabled": false, "gain_db": -20, "duck_under_narration": false },
+        "narration": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "music": { "enabled": false }
+      },
+      "captions": { "mode": "off", "manual_cues": [], "word_edits": [] },
+      "overlays": {
+        "rank_badge": { "visible": true },
+        "label": { "visible": true, "text": null },
+        "reddit_card": null,
+        "texts": []
+      },
+      "rank": { "include": true },
+      "transition_in": { "type": "cut", "duration_s": 0 },
+      "sfx": []
+    },
+    {
+      "id": "scn_01JDXRANK2LADDER",
+      "name": "Ladder betrayal",
+      "enabled": true,
+      "duration": { "driver": "narration", "fixed_s": null, "tail_pad_s": 0.35 },
+      "layout": { "type": "full", "background_color": "#000000" },
+      "layers": {
+        "primary": {
+          "type": "segment",
+          "segment_id": "seg_01JDXLADDERSLIP",
+          "reframe": { "mode": "blur_fill", "focus": { "x": 0.5, "y": 0.5 }, "zoom": 1.0 },
+          "playback": { "speed": 1, "when_short": "freeze_last", "loop_crossfade_s": 0, "continue_from_previous": false }
+        },
+        "secondary": null
+      },
+      "narration": {
+        "text": "He trusted the ladder. The ladder did not trust him.",
+        "voice": null,
+        "offset_s": 0.2,
+        "take": {
+          "id": "tk_01JDXLADDERTAKE1",
+          "method": "tts",
+          "provider": "edge",
+          "voice_id": "en-US-AndrewNeural",
+          "rate_pct": 0,
+          "text_sha256": "065b010badd8611fe936e0b2ba07a6d9fb07bef5dbaaf3bbd4367e8455339132",
+          "audio_path": "data:cache/takes/06/065b010badd8611f.wav",
+          "duration_s": 3.18,
+          "words": [
+            ["He", 0.05, 0.18], ["trusted", 0.18, 0.55], ["the", 0.55, 0.64], ["ladder.", 0.64, 1.12],
+            ["The", 1.38, 1.5], ["ladder", 1.5, 1.86], ["did", 1.86, 2.02], ["not", 2.02, 2.24],
+            ["trust", 2.24, 2.6], ["him.", 2.6, 3.05]
+          ],
+          "timing": "native",
+          "created_at": "2026-11-25T18:12:40Z"
+        }
+      },
+      "audio": {
+        "primary": { "enabled": true, "gain_db": -6, "duck_under_narration": true },
+        "secondary": { "enabled": false, "gain_db": -20, "duck_under_narration": false },
+        "narration": { "enabled": true, "gain_db": 0, "duck_under_narration": false },
+        "music": { "enabled": true }
+      },
+      "captions": { "mode": "inherit", "manual_cues": [], "word_edits": [] },
+      "overlays": {
+        "rank_badge": { "visible": true },
+        "label": { "visible": true, "text": null },
+        "reddit_card": null,
+        "texts": []
+      },
+      "rank": { "include": true },
+      "transition_in": { "type": "cut", "duration_s": 0 },
+      "sfx": [ { "id": "sfx_01JDXLADDERPOP", "at_s": 1.12, "sound": "pop", "gain_db": -12 } ]
+    },
+    {
+      "id": "scn_01JDXRANK1BOSS",
+      "name": "Tutorial boss wipe",
+      "enabled": true,
+      "duration": { "driver": "primary", "fixed_s": null, "tail_pad_s": 0 },
+      "layout": {
+        "type": "split",
+        "background_color": "#000000",
+        "split": { "divider": 0.55, "primary_position": "top", "gap_px": 6, "gap_color": "#000000" }
+      },
+      "layers": {
+        "primary": {
+          "type": "segment",
+          "segment_id": "seg_01JDXBOSSWIPE",
+          "reframe": { "mode": "fill", "focus": { "x": 0.5, "y": 0.45 }, "zoom": 1.1 },
+          "playback": { "speed": 1, "when_short": "freeze_last", "loop_crossfade_s": 0, "continue_from_previous": false }
+        },
+        "secondary": {
+          "type": "segment",
+          "segment_id": "seg_01JDXPARKOURA",
+          "reframe": { "mode": "fill", "focus": { "x": 0.5, "y": 0.5 }, "zoom": 1.0 },
+          "playback": { "speed": 1, "when_short": "loop", "loop_crossfade_s": 0.25, "continue_from_previous": false }
+        }
+      },
+      "narration": null,
+      "audio": {
+        "primary": { "enabled": true, "gain_db": 0, "duck_under_narration": false },
+        "secondary": { "enabled": false, "gain_db": -24, "duck_under_narration": false },
+        "narration": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "music": { "enabled": false }
+      },
+      "captions": { "mode": "off", "manual_cues": [], "word_edits": [] },
+      "overlays": {
+        "rank_badge": { "visible": true },
+        "label": { "visible": true, "text": null },
+        "reddit_card": null,
+        "texts": []
+      },
+      "rank": { "include": true },
+      "transition_in": { "type": "cut", "duration_s": 0 },
+      "sfx": []
+    }
+  ],
+  "ranking": {
+    "enabled": true,
+    "direction": "descending",
+    "badge": {
+      "format": "#{n}",
+      "position": "top_left",
+      "style": {
+        "font_family": "Anton", "font_size_px": 96, "color": "#FFD60A", "stroke_color": "#000000",
+        "stroke_px": 8, "box_color": null, "uppercase": true
+      }
+    },
+    "reveal": "current_only"
+  },
+  "audio": {
+    "music": {
+      "source_id": "src_01JDXMUSICLOFI", "enabled": true, "gain_db": -18,
+      "start_offset_s": 0, "fade_in_s": 0.5, "fade_out_s": 1.0, "loop": true
+    },
+    "ducking": { "enabled": true, "depth_db": -12, "attack_ms": 120, "release_ms": 350 },
+    "edge_fade_ms": 20
+  },
+  "captions": {
+    "enabled": true,
+    "default_mode": "narration_words",
+    "style": {
+      "preset": "bold",
+      "text": {
+        "font_family": "Anton", "font_size_px": 84, "color": "#FFFFFF", "stroke_color": "#000000",
+        "stroke_px": 7, "box_color": null, "uppercase": true
+      },
+      "active_color": "#FFE11A",
+      "emphasis_color": "#4ADE80",
+      "max_words": 3,
+      "max_chars": 18
+    },
+    "anchor_y": 0.72,
+    "emphasis_words": ["ladder"]
+  },
+  "overlays": {
+    "hook": null,
+    "title_bar": {
+      "text": "Top 3 funniest gaming fails",
+      "position": "top",
+      "background": "#000000B3",
+      "style": {
+        "font_family": "Anton", "font_size_px": 64, "color": "#FFFFFF", "stroke_color": "#000000",
+        "stroke_px": 0, "box_color": null, "uppercase": true
+      }
+    },
+    "watermark": null
+  },
+  "publish_meta": {
+    "title_drafts": [
+      { "text": "Top 3 funniest gaming fails (#1 hurts)", "kind": "user", "created_at": "2026-11-25T18:40:00Z" }
+    ],
+    "description": "",
+    "tags": ["gaming fails", "funny moments", "shorts"],
+    "source_links": []
+  },
+  "extensions": {}
+}

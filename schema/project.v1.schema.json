@@ -1,0 +1,924 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shorts-studio.local/schema/project.v1.schema.json",
+  "title": "Shorts Studio project document, version 1",
+  "description": "One document describes one vertical video. Timeline positions are never stored: the resolver derives them from scene order and scene durations. Displayed ranks, take staleness and safe-area pixel rectangles are also derived, never stored. See docs/phase-0/04-project-schema.md for the semantic rules JSON Schema cannot express.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "schema_version", "id", "title", "created_at", "updated_at", "revision", "origin",
+    "output", "audience", "compliance", "voice", "sources", "segments", "scenes", "ranking",
+    "audio", "captions", "overlays"
+  ],
+  "properties": {
+    "schema": { "const": "shorts-studio.project" },
+    "schema_version": { "const": 1 },
+    "app_version": { "type": "string", "maxLength": 40 },
+    "id": { "$ref": "#/$defs/projectId" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": { "$ref": "#/$defs/timestamp" },
+    "revision": { "type": "integer", "minimum": 0, "description": "Incremented by the server on every accepted save. Saves must name the revision they were based on." },
+    "origin": { "$ref": "#/$defs/origin" },
+    "output": { "$ref": "#/$defs/output" },
+    "audience": { "$ref": "#/$defs/audience" },
+    "compliance": { "$ref": "#/$defs/compliance" },
+    "voice": { "$ref": "#/$defs/voice" },
+    "sources": {
+      "type": "object",
+      "description": "Media files the project uses, keyed by source id.",
+      "propertyNames": { "$ref": "#/$defs/sourceId" },
+      "additionalProperties": { "$ref": "#/$defs/source" }
+    },
+    "segments": {
+      "type": "object",
+      "description": "In/out selections on a source, keyed by segment id. A segment has no timeline position.",
+      "propertyNames": { "$ref": "#/$defs/segmentId" },
+      "additionalProperties": { "$ref": "#/$defs/segment" }
+    },
+    "scenes": {
+      "type": "array",
+      "description": "Timeline order. Reordering moves whole scene objects, so everything a scene owns moves with it.",
+      "maxItems": 100,
+      "items": { "$ref": "#/$defs/scene" }
+    },
+    "ranking": { "$ref": "#/$defs/ranking" },
+    "audio": { "$ref": "#/$defs/projectAudio" },
+    "captions": { "$ref": "#/$defs/captionSettings" },
+    "overlays": { "$ref": "#/$defs/projectOverlays" },
+    "publish_meta": { "$ref": "#/$defs/publishMeta" },
+    "extensions": {
+      "type": "object",
+      "description": "Reserved for later integrations (publishing, scheduling, analytics). Unknown keys are kept on load and save."
+    }
+  },
+
+  "$defs": {
+    "timestamp": { "type": "string", "format": "date-time" },
+    "seconds": { "type": "number", "minimum": 0, "maximum": 36000 },
+    "gainDb": { "type": "number", "minimum": -60, "maximum": 12 },
+    "unit": { "type": "number", "minimum": 0, "maximum": 1 },
+    "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+
+    "projectId": { "type": "string", "pattern": "^prj_[0-9A-Za-z]{6,32}$" },
+    "sourceId": { "type": "string", "pattern": "^src_[0-9A-Za-z]{6,32}$" },
+    "segmentId": { "type": "string", "pattern": "^seg_[0-9A-Za-z]{6,32}$" },
+    "sceneId": { "type": "string", "pattern": "^scn_[0-9A-Za-z]{6,32}$" },
+    "takeId": { "type": "string", "pattern": "^tk_[0-9A-Za-z]{6,32}$" },
+    "overlayId": { "type": "string", "pattern": "^ovl_[0-9A-Za-z]{6,32}$" },
+    "sfxId": { "type": "string", "pattern": "^sfx_[0-9A-Za-z]{6,32}$" },
+    "gameplayClipId": { "type": "string", "pattern": "^gpc_[0-9A-Za-z]{6,32}$" },
+
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entry", "preset", "input"],
+      "properties": {
+        "entry": { "enum": ["edit_existing", "create_from_scratch"] },
+        "preset": {
+          "enum": ["quick_short", "ranking", "story", "gameplay", "blank"],
+          "description": "The starting preset. Informational only: it never changes how the document renders."
+        },
+        "input": { "enum": ["files", "url", "topic", "script", "reddit_post", "blank"] }
+      }
+    },
+
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "fps", "video", "audio", "when_silent", "max_duration_s", "safe_area"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 144, "maximum": 4096 },
+        "height": { "type": "integer", "minimum": 256, "maximum": 4096 },
+        "fps": { "enum": [24, 25, 30, 50, 60] },
+        "video": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["codec", "encoder", "crf", "preset"],
+          "properties": {
+            "codec": { "const": "h264" },
+            "encoder": { "enum": ["libx264", "h264_nvenc", "h264_qsv", "h264_amf", "h264_videotoolbox"] },
+            "crf": { "type": "integer", "minimum": 12, "maximum": 32 },
+            "preset": { "enum": ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow"] }
+          }
+        },
+        "audio": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["codec", "bitrate_kbps", "sample_rate", "loudness"],
+          "properties": {
+            "codec": { "const": "aac" },
+            "bitrate_kbps": { "enum": [128, 160, 192, 256, 320] },
+            "sample_rate": { "enum": [44100, 48000] },
+            "loudness": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["enabled", "target_lufs", "true_peak_dbtp", "lra"],
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "target_lufs": { "type": "number", "minimum": -30, "maximum": -8 },
+                "true_peak_dbtp": { "type": "number", "minimum": -9, "maximum": 0 },
+                "lra": { "type": "number", "minimum": 1, "maximum": 20 }
+              }
+            }
+          }
+        },
+        "when_silent": {
+          "enum": ["omit_audio_stream", "silent_aac"],
+          "description": "What the MP4 contains when every audio track is off."
+        },
+        "max_duration_s": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0,
+          "maximum": 180,
+          "description": "Hard cap on the rendered length. The Quick Short preset sets 15."
+        },
+        "safe_area": { "$ref": "#/$defs/safeArea" }
+      }
+    },
+
+    "safeArea": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "reference_px", "insets_px"],
+      "properties": {
+        "profile": { "enum": ["youtube_shorts", "custom"] },
+        "reference_px": {
+          "type": "array",
+          "prefixItems": [{ "const": 1080 }, { "const": 1920 }],
+          "items": false,
+          "minItems": 2,
+          "description": "Insets are measured on this frame and scaled to the output size."
+        },
+        "insets_px": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["top", "bottom", "left", "right"],
+          "properties": {
+            "top": { "type": "integer", "minimum": 0, "maximum": 900 },
+            "bottom": { "type": "integer", "minimum": 0, "maximum": 900 },
+            "left": { "type": "integer", "minimum": 0, "maximum": 500 },
+            "right": { "type": "integer", "minimum": 0, "maximum": 500 }
+          }
+        }
+      }
+    },
+
+    "audience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["country", "region", "language", "spelling", "units"],
+      "properties": {
+        "country": { "enum": ["US", "CA", "BOTH"] },
+        "region": {
+          "description": "Optional ISO 3166-2 state, province or territory.",
+          "enum": [
+            null,
+            "US-AL", "US-AK", "US-AZ", "US-AR", "US-CA", "US-CO", "US-CT", "US-DE", "US-FL", "US-GA",
+            "US-HI", "US-ID", "US-IL", "US-IN", "US-IA", "US-KS", "US-KY", "US-LA", "US-ME", "US-MD",
+            "US-MA", "US-MI", "US-MN", "US-MS", "US-MO", "US-MT", "US-NE", "US-NV", "US-NH", "US-NJ",
+            "US-NM", "US-NY", "US-NC", "US-ND", "US-OH", "US-OK", "US-OR", "US-PA", "US-RI", "US-SC",
+            "US-SD", "US-TN", "US-TX", "US-UT", "US-VT", "US-VA", "US-WA", "US-WV", "US-WI", "US-WY",
+            "US-DC", "US-PR", "US-GU", "US-VI", "US-AS", "US-MP",
+            "CA-AB", "CA-BC", "CA-MB", "CA-NB", "CA-NL", "CA-NS", "CA-ON", "CA-PE", "CA-QC", "CA-SK",
+            "CA-NT", "CA-NU", "CA-YT"
+          ]
+        },
+        "language": { "enum": ["en-US", "en-CA"] },
+        "spelling": { "enum": ["en-US", "en-CA"] },
+        "units": { "enum": ["imperial", "metric", "both"] },
+        "localization_log": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["at", "from_region", "to_region", "hunks_accepted", "hunks_rejected"],
+            "properties": {
+              "at": { "$ref": "#/$defs/timestamp" },
+              "from_region": { "type": ["string", "null"] },
+              "to_region": { "type": ["string", "null"] },
+              "hunks_accepted": { "type": "integer", "minimum": 0 },
+              "hunks_rejected": { "type": "integer", "minimum": 0 }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "country": { "const": "BOTH" } } },
+          "then": { "properties": { "region": { "const": null } } }
+        },
+        {
+          "if": { "properties": { "country": { "const": "US" } } },
+          "then": { "properties": { "region": { "anyOf": [{ "const": null }, { "type": "string", "pattern": "^US-" }] } } }
+        },
+        {
+          "if": { "properties": { "country": { "const": "CA" } } },
+          "then": { "properties": { "region": { "anyOf": [{ "const": null }, { "type": "string", "pattern": "^CA-" }] } } }
+        }
+      ]
+    },
+
+    "compliance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rights", "reused_content_warning"],
+      "properties": {
+        "rights": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["confirmed", "confirmed_at", "statement_version"],
+          "description": "Required before rendering when any used source is url_download or ownership third_party/unknown.",
+          "properties": {
+            "confirmed": { "type": "boolean" },
+            "confirmed_at": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/timestamp" }] },
+            "statement_version": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "reused_content_warning": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dismissed_at"],
+          "properties": {
+            "dismissed_at": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/timestamp" }] }
+          }
+        }
+      }
+    },
+
+    "voice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "voice_id", "rate_pct"],
+      "properties": {
+        "provider": { "enum": ["edge", "system", "elevenlabs", "openai_compatible", "none"] },
+        "model_id": { "type": "string", "maxLength": 100 },
+        "voice_id": { "type": "string", "maxLength": 100 },
+        "rate_pct": { "type": "integer", "minimum": -50, "maximum": 100 }
+      }
+    },
+
+    "fingerprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["size_bytes", "mtime", "sample_sha256", "duration_s", "width", "height", "fps", "rotation", "has_audio"],
+      "description": "Used to detect moved or replaced files and to check a relink target.",
+      "properties": {
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "mtime": { "type": "number", "description": "Seconds since the Unix epoch." },
+        "sample_sha256": { "allOf": [{ "$ref": "#/$defs/sha256" }], "description": "SHA-256 of the first and last 1 MiB." },
+        "duration_s": { "type": ["number", "null"], "minimum": 0 },
+        "width": { "type": ["integer", "null"], "minimum": 1 },
+        "height": { "type": ["integer", "null"], "minimum": 1 },
+        "fps": { "type": ["number", "null"], "minimum": 0 },
+        "rotation": { "enum": [0, 90, 180, 270] },
+        "has_audio": { "type": "boolean" },
+        "video_codec": { "type": ["string", "null"] },
+        "audio_codec": { "type": ["string", "null"] }
+      }
+    },
+
+    "attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "author", "license", "page_url"],
+      "properties": {
+        "provider": { "type": "string" },
+        "author": { "type": ["string", "null"] },
+        "license": { "type": "string" },
+        "page_url": { "type": ["string", "null"] }
+      }
+    },
+
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "origin", "ownership", "path", "display_name", "fingerprint", "imported_at"],
+      "properties": {
+        "kind": { "enum": ["video", "image", "audio"] },
+        "origin": { "enum": ["local_file", "url_download", "stock", "ai_image", "gameplay_library", "generated", "recording"] },
+        "ownership": { "enum": ["own", "licensed", "third_party", "unknown"] },
+        "path": { "type": "string", "minLength": 1, "description": "Absolute path, or a 'data:' path inside the app data folder." },
+        "display_name": { "type": "string", "maxLength": 200 },
+        "url": { "type": ["string", "null"], "description": "Where a downloaded, stock or AI source came from." },
+        "attribution": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/attribution" }] },
+        "gameplay_clip_id": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/gameplayClipId" }] },
+        "transcript": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "model", "language", "created_at"],
+              "properties": {
+                "path": { "type": "string" },
+                "model": { "type": "string" },
+                "language": { "type": "string" },
+                "created_at": { "$ref": "#/$defs/timestamp" }
+              }
+            }
+          ]
+        },
+        "fingerprint": { "$ref": "#/$defs/fingerprint" },
+        "imported_at": { "$ref": "#/$defs/timestamp" }
+      }
+    },
+
+    "segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "in_s", "out_s", "label", "created_by", "pick"],
+      "properties": {
+        "source_id": { "$ref": "#/$defs/sourceId" },
+        "in_s": { "$ref": "#/$defs/seconds" },
+        "out_s": { "$ref": "#/$defs/seconds" },
+        "label": { "type": "string", "maxLength": 80 },
+        "created_by": { "enum": ["manual", "highlight_suggestion", "gameplay_pick", "whole_source"] },
+        "pick": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["strategy", "seed", "picked_at"],
+              "properties": {
+                "strategy": { "const": "random_nonrepeating" },
+                "seed": { "type": "integer" },
+                "picked_at": { "$ref": "#/$defs/timestamp" }
+              }
+            }
+          ]
+        }
+      }
+    },
+
+    "textStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["font_family", "font_size_px", "color", "stroke_color", "stroke_px", "box_color", "uppercase"],
+      "properties": {
+        "font_family": { "type": "string", "maxLength": 80 },
+        "font_size_px": { "type": "integer", "minimum": 12, "maximum": 240 },
+        "color": { "$ref": "#/$defs/color" },
+        "stroke_color": { "$ref": "#/$defs/color" },
+        "stroke_px": { "type": "integer", "minimum": 0, "maximum": 30 },
+        "box_color": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/color" }] },
+        "uppercase": { "type": "boolean" }
+      }
+    },
+
+    "reframe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "focus", "zoom"],
+      "description": "How a source fills its slot. fill = cover-crop; fit = whole picture with bars; blur_fill = whole picture over a blurred copy of itself.",
+      "properties": {
+        "mode": { "enum": ["fill", "fit", "blur_fill"] },
+        "focus": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x", "y"],
+          "description": "Centre of the crop window in normalised source coordinates.",
+          "properties": { "x": { "$ref": "#/$defs/unit" }, "y": { "$ref": "#/$defs/unit" } }
+        },
+        "zoom": { "type": "number", "minimum": 1, "maximum": 4, "description": "1 = the smallest window that covers the slot." },
+        "bar_color": { "$ref": "#/$defs/color" },
+        "keyframes": {
+          "type": "array",
+          "description": "Optional moving crop. Times are relative to the segment's in point.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["at_s", "x", "y", "zoom"],
+            "properties": {
+              "at_s": { "$ref": "#/$defs/seconds" },
+              "x": { "$ref": "#/$defs/unit" },
+              "y": { "$ref": "#/$defs/unit" },
+              "zoom": { "type": "number", "minimum": 1, "maximum": 4 }
+            }
+          }
+        }
+      }
+    },
+
+    "playback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["speed", "when_short", "loop_crossfade_s", "continue_from_previous"],
+      "properties": {
+        "speed": { "type": "number", "minimum": 0.25, "maximum": 4 },
+        "when_short": {
+          "enum": ["loop", "freeze_last", "slow_to_fit", "black"],
+          "description": "What happens when the scene lasts longer than the segment."
+        },
+        "loop_crossfade_s": { "type": "number", "minimum": 0, "maximum": 1 },
+        "continue_from_previous": {
+          "type": "boolean",
+          "description": "Start where the previous scene's use of the same source ended, so one gameplay stretch runs continuously across scenes."
+        }
+      }
+    },
+
+    "visual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "reframe"],
+      "properties": {
+        "type": { "enum": ["segment", "image", "text_card", "color"] },
+        "segment_id": { "$ref": "#/$defs/segmentId" },
+        "source_id": { "$ref": "#/$defs/sourceId" },
+        "text_card": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text", "background", "style", "align"],
+          "properties": {
+            "text": { "type": "string", "maxLength": 500 },
+            "background": { "$ref": "#/$defs/color" },
+            "style": { "$ref": "#/$defs/textStyle" },
+            "align": { "enum": ["left", "center"] }
+          }
+        },
+        "color": { "$ref": "#/$defs/color" },
+        "reframe": { "$ref": "#/$defs/reframe" },
+        "playback": { "$ref": "#/$defs/playback" },
+        "motion": { "enum": ["none", "ken_burns_in", "ken_burns_out", "pan_left", "pan_right"] }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "segment" } } }, "then": { "required": ["segment_id", "playback"] } },
+        { "if": { "properties": { "type": { "const": "image" } } }, "then": { "required": ["source_id", "motion"] } },
+        { "if": { "properties": { "type": { "const": "text_card" } } }, "then": { "required": ["text_card"] } },
+        { "if": { "properties": { "type": { "const": "color" } } }, "then": { "required": ["color"] } }
+      ]
+    },
+
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "background_color"],
+      "description": "Where the scene's layers sit. The UI's 'Blurred fill' choice is type full with the primary layer's reframe.mode = blur_fill.",
+      "properties": {
+        "type": { "enum": ["full", "split", "pip"] },
+        "background_color": { "$ref": "#/$defs/color" },
+        "split": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["divider", "primary_position", "gap_px", "gap_color"],
+          "properties": {
+            "divider": { "type": "number", "minimum": 0.2, "maximum": 0.8, "description": "Fraction of the frame height above the divider." },
+            "primary_position": { "enum": ["top", "bottom"] },
+            "gap_px": { "type": "integer", "minimum": 0, "maximum": 60 },
+            "gap_color": { "$ref": "#/$defs/color" }
+          }
+        },
+        "pip": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["inset_layer", "x", "y", "width", "aspect", "corner_radius_px", "border_px", "border_color"],
+          "properties": {
+            "inset_layer": { "enum": ["primary", "secondary"] },
+            "x": { "$ref": "#/$defs/unit" },
+            "y": { "$ref": "#/$defs/unit" },
+            "width": { "type": "number", "minimum": 0.15, "maximum": 0.9 },
+            "aspect": { "enum": ["source", "9:16", "1:1", "4:3", "16:9"] },
+            "corner_radius_px": { "type": "integer", "minimum": 0, "maximum": 80 },
+            "border_px": { "type": "integer", "minimum": 0, "maximum": 20 },
+            "border_color": { "$ref": "#/$defs/color" }
+          }
+        }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "split" } } }, "then": { "required": ["split"] } },
+        { "if": { "properties": { "type": { "const": "pip" } } }, "then": { "required": ["pip"] } }
+      ]
+    },
+
+    "sceneDuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["driver", "fixed_s", "tail_pad_s"],
+      "properties": {
+        "driver": {
+          "enum": ["primary", "narration", "fixed"],
+          "description": "primary = the primary segment's length; narration = the take's length plus tail_pad_s; fixed = fixed_s."
+        },
+        "fixed_s": { "type": ["number", "null"], "minimum": 0.2, "maximum": 180 },
+        "tail_pad_s": { "type": "number", "minimum": 0, "maximum": 3 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "driver": { "const": "fixed" } } },
+          "then": { "properties": { "fixed_s": { "type": "number" } } }
+        }
+      ]
+    },
+
+    "word": {
+      "type": "array",
+      "prefixItems": [{ "type": "string" }, { "type": "number", "minimum": 0 }, { "type": "number", "minimum": 0 }],
+      "items": false,
+      "minItems": 3,
+      "description": "[text, start_s, end_s], relative to the start of the take."
+    },
+
+    "take": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "method", "provider", "voice_id", "rate_pct", "text_sha256", "audio_path", "duration_s", "words", "timing", "created_at"],
+      "description": "A take is stale when text_sha256 no longer matches the narration text, or its voice no longer matches the scene's effective voice. Staleness is derived, never stored.",
+      "properties": {
+        "id": { "$ref": "#/$defs/takeId" },
+        "method": { "enum": ["tts", "recorded", "imported"] },
+        "provider": { "type": ["string", "null"] },
+        "model_id": { "type": "string", "maxLength": 100 },
+        "voice_id": { "type": ["string", "null"] },
+        "rate_pct": { "type": ["integer", "null"] },
+        "text_sha256": { "$ref": "#/$defs/sha256" },
+        "audio_path": { "type": "string", "minLength": 1 },
+        "duration_s": { "type": "number", "exclusiveMinimum": 0 },
+        "words": { "type": "array", "items": { "$ref": "#/$defs/word" } },
+        "timing": { "enum": ["native", "aligned", "estimated"] },
+        "created_at": { "$ref": "#/$defs/timestamp" }
+      }
+    },
+
+    "narration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "voice", "offset_s", "take"],
+      "properties": {
+        "text": { "type": "string", "maxLength": 600 },
+        "voice": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/voice" }], "description": "null = the project voice." },
+        "offset_s": { "type": "number", "minimum": 0, "maximum": 10 },
+        "take": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/take" }] }
+      }
+    },
+
+    "mixToggle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "gain_db", "duck_under_narration"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "gain_db": { "$ref": "#/$defs/gainDb" },
+        "duck_under_narration": { "type": "boolean" }
+      }
+    },
+
+    "sceneAudio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "secondary", "narration", "music"],
+      "properties": {
+        "primary": { "$ref": "#/$defs/mixToggle", "description": "The primary layer's own sound." },
+        "secondary": { "$ref": "#/$defs/mixToggle", "description": "The secondary layer's own sound (for example gameplay)." },
+        "narration": { "$ref": "#/$defs/mixToggle" },
+        "music": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": { "enabled": { "type": "boolean" } }
+        }
+      }
+    },
+
+    "cue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_s", "end_s", "text"],
+      "properties": {
+        "start_s": { "$ref": "#/$defs/seconds" },
+        "end_s": { "$ref": "#/$defs/seconds" },
+        "text": { "type": "string", "maxLength": 200 }
+      }
+    },
+
+    "sceneCaptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "manual_cues", "word_edits"],
+      "properties": {
+        "mode": { "enum": ["inherit", "off", "narration_words", "source_transcript", "manual"] },
+        "manual_cues": { "type": "array", "items": { "$ref": "#/$defs/cue" }, "description": "Scene-relative times." },
+        "word_edits": {
+          "type": "array",
+          "description": "Display-only corrections to timed words (for example a misheard transcript word).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["index", "text"],
+            "properties": {
+              "index": { "type": "integer", "minimum": 0 },
+              "text": { "type": "string", "maxLength": 60 }
+            }
+          }
+        }
+      }
+    },
+
+    "redditCard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["community", "title", "author", "source_url", "show_metrics", "metrics", "start_s", "end_s"],
+      "description": "Vote and comment counts appear only when the user typed them in; the app never invents them.",
+      "properties": {
+        "community": { "type": "string", "maxLength": 40 },
+        "title": { "type": "string", "maxLength": 300 },
+        "author": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "name"],
+          "properties": {
+            "mode": { "enum": ["hidden", "anonymized", "shown"] },
+            "name": { "type": ["string", "null"], "maxLength": 40 }
+          }
+        },
+        "source_url": { "type": ["string", "null"] },
+        "show_metrics": { "type": "boolean" },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["upvotes", "comments"],
+          "properties": {
+            "upvotes": { "type": ["integer", "null"], "minimum": 0 },
+            "comments": { "type": ["integer", "null"], "minimum": 0 }
+          }
+        },
+        "start_s": { "$ref": "#/$defs/seconds" },
+        "end_s": { "type": ["number", "null"], "minimum": 0, "description": "null = until the narration finishes reading the title." }
+      }
+    },
+
+    "textOverlay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "start_s", "end_s", "anchor", "style"],
+      "properties": {
+        "id": { "$ref": "#/$defs/overlayId" },
+        "text": { "type": "string", "maxLength": 200 },
+        "start_s": { "$ref": "#/$defs/seconds" },
+        "end_s": { "type": ["number", "null"], "minimum": 0, "description": "null = end of scene." },
+        "anchor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x", "y"],
+          "description": "Position inside the safe area (0,0 = its top-left corner).",
+          "properties": { "x": { "$ref": "#/$defs/unit" }, "y": { "$ref": "#/$defs/unit" } }
+        },
+        "style": { "$ref": "#/$defs/textStyle" }
+      }
+    },
+
+    "sceneOverlays": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rank_badge", "label", "reddit_card", "texts"],
+      "properties": {
+        "rank_badge": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["visible"],
+          "properties": { "visible": { "type": "boolean" } }
+        },
+        "label": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["visible", "text"],
+          "properties": {
+            "visible": { "type": "boolean" },
+            "text": { "type": ["string", "null"], "maxLength": 80, "description": "null = the scene name." }
+          }
+        },
+        "reddit_card": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/redditCard" }] },
+        "texts": { "type": "array", "maxItems": 20, "items": { "$ref": "#/$defs/textOverlay" } }
+      }
+    },
+
+    "sfxCue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "at_s", "sound", "gain_db"],
+      "properties": {
+        "id": { "$ref": "#/$defs/sfxId" },
+        "at_s": { "$ref": "#/$defs/seconds", "description": "Scene-relative, so the effect moves with its scene." },
+        "sound": {
+          "anyOf": [
+            { "enum": ["whoosh", "pop", "hit", "ding", "boing", "record_scratch"] },
+            { "$ref": "#/$defs/sourceId" }
+          ]
+        },
+        "gain_db": { "$ref": "#/$defs/gainDb" }
+      }
+    },
+
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "enabled", "duration", "layout", "layers", "narration", "audio", "captions", "overlays", "rank", "transition_in", "sfx"],
+      "properties": {
+        "id": { "$ref": "#/$defs/sceneId" },
+        "name": { "type": "string", "maxLength": 80 },
+        "enabled": { "type": "boolean", "description": "false = skipped at render, kept in the project." },
+        "duration": { "$ref": "#/$defs/sceneDuration" },
+        "layout": { "$ref": "#/$defs/layout" },
+        "layers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary", "secondary"],
+          "properties": {
+            "primary": { "$ref": "#/$defs/visual" },
+            "secondary": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/visual" }] }
+          }
+        },
+        "narration": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/narration" }] },
+        "audio": { "$ref": "#/$defs/sceneAudio" },
+        "captions": { "$ref": "#/$defs/sceneCaptions" },
+        "overlays": { "$ref": "#/$defs/sceneOverlays" },
+        "rank": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["include"],
+          "properties": { "include": { "type": "boolean", "description": "false for intro/outro scenes in a ranking." } }
+        },
+        "transition_in": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "duration_s"],
+          "properties": {
+            "type": { "enum": ["cut", "crossfade", "fade_through_black"] },
+            "duration_s": { "type": "number", "minimum": 0, "maximum": 1.5 }
+          }
+        },
+        "sfx": { "type": "array", "maxItems": 40, "items": { "$ref": "#/$defs/sfxCue" } }
+      }
+    },
+
+    "ranking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "direction", "badge", "reveal"],
+      "description": "Displayed rank numbers are derived from scene order, never stored.",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "direction": {
+          "enum": ["descending", "ascending"],
+          "description": "descending = countdown (N first, 1 last); ascending = 1 first."
+        },
+        "badge": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["format", "position", "style"],
+          "properties": {
+            "format": { "type": "string", "pattern": "\\{n\\}", "maxLength": 16 },
+            "position": { "enum": ["top_left", "top_center", "top_right"] },
+            "style": { "$ref": "#/$defs/textStyle" }
+          }
+        },
+        "reveal": {
+          "enum": ["current_only", "list_build_up"],
+          "description": "current_only = one badge per entry; list_build_up = a numbered list that fills in as entries play."
+        }
+      }
+    },
+
+    "musicTrack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "enabled", "gain_db", "start_offset_s", "fade_in_s", "fade_out_s", "loop"],
+      "properties": {
+        "source_id": { "$ref": "#/$defs/sourceId" },
+        "enabled": { "type": "boolean" },
+        "gain_db": { "$ref": "#/$defs/gainDb" },
+        "start_offset_s": { "$ref": "#/$defs/seconds" },
+        "fade_in_s": { "type": "number", "minimum": 0, "maximum": 10 },
+        "fade_out_s": { "type": "number", "minimum": 0, "maximum": 10 },
+        "loop": { "type": "boolean" }
+      }
+    },
+
+    "projectAudio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["music", "ducking", "edge_fade_ms"],
+      "properties": {
+        "music": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/musicTrack" }] },
+        "ducking": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "depth_db", "attack_ms", "release_ms"],
+          "description": "Music (and any layer with duck_under_narration) dips while narration is speaking.",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "depth_db": { "type": "number", "minimum": -30, "maximum": 0 },
+            "attack_ms": { "type": "integer", "minimum": 10, "maximum": 1000 },
+            "release_ms": { "type": "integer", "minimum": 50, "maximum": 3000 }
+          }
+        },
+        "edge_fade_ms": { "type": "integer", "minimum": 0, "maximum": 200, "description": "Short fade at every scene cut, so cuts don't click." }
+      }
+    },
+
+    "captionSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "default_mode", "style", "anchor_y", "emphasis_words"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "default_mode": { "enum": ["narration_words", "source_transcript", "off"] },
+        "style": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["preset", "text", "active_color", "emphasis_color", "max_words", "max_chars"],
+          "properties": {
+            "preset": { "enum": ["bold", "boxed", "clean", "karaoke", "minimal"] },
+            "text": { "$ref": "#/$defs/textStyle" },
+            "active_color": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/color" }] },
+            "emphasis_color": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/color" }] },
+            "max_words": { "type": "integer", "minimum": 1, "maximum": 8 },
+            "max_chars": { "type": "integer", "minimum": 6, "maximum": 40 }
+          }
+        },
+        "anchor_y": { "$ref": "#/$defs/unit", "description": "Vertical position inside the safe area (0 = its top, 1 = its bottom)." },
+        "emphasis_words": { "type": "array", "items": { "type": "string", "maxLength": 40 }, "maxItems": 100 }
+      }
+    },
+
+    "projectOverlays": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hook", "title_bar", "watermark"],
+      "properties": {
+        "hook": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["text", "start_s", "duration_s", "anchor_y", "style"],
+              "properties": {
+                "text": { "type": "string", "maxLength": 80 },
+                "start_s": { "$ref": "#/$defs/seconds" },
+                "duration_s": { "type": "number", "minimum": 0.3, "maximum": 10 },
+                "anchor_y": { "$ref": "#/$defs/unit" },
+                "style": { "$ref": "#/$defs/textStyle" }
+              }
+            }
+          ]
+        },
+        "title_bar": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["text", "position", "background", "style"],
+              "properties": {
+                "text": { "type": "string", "maxLength": 80 },
+                "position": { "enum": ["top", "bottom"] },
+                "background": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/color" }] },
+                "style": { "$ref": "#/$defs/textStyle" }
+              }
+            }
+          ]
+        },
+        "watermark": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["text", "opacity"],
+              "properties": {
+                "text": { "type": "string", "maxLength": 40 },
+                "opacity": { "$ref": "#/$defs/unit" }
+              }
+            }
+          ]
+        }
+      }
+    },
+
+    "publishMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title_drafts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text", "kind", "created_at"],
+            "properties": {
+              "text": { "type": "string", "maxLength": 100 },
+              "kind": { "enum": ["user", "editorial"], "description": "editorial = generated suggestion, shown apart from observed trend data." },
+              "created_at": { "$ref": "#/$defs/timestamp" }
+            }
+          }
+        },
+        "description": { "type": "string", "maxLength": 5000 },
+        "tags": { "type": "array", "items": { "type": "string", "maxLength": 100 }, "maxItems": 60 },
+        "source_links": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

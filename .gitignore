@@ -1,0 +1,26 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+
+# App data (projects, media, renders, caches, database)
+data/
+.env
+*.log
+
+# Test output kept outside the repo by default
+test-output/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

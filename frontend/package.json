@@ -1,0 +1,31 @@
+{
+  "name": "shorts-studio-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json && vite build",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "gen:types": "node scripts/gen-types.mjs"
+  },
+  "dependencies": {
+    "immer": "^10.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "json-schema-to-typescript": "^15.0.3",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}

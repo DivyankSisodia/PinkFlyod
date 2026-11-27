@@ -1,0 +1,117 @@
+{
+  "schema": "shorts-studio.project",
+  "schema_version": 1,
+  "id": "prj_01JDXQUICK13S",
+  "title": "Quick Short, 13 seconds",
+  "created_at": "2026-11-25T19:10:00Z",
+  "updated_at": "2026-11-25T19:12:30Z",
+  "revision": 6,
+  "origin": { "entry": "edit_existing", "preset": "quick_short", "input": "files" },
+  "output": {
+    "width": 1080, "height": 1920, "fps": 30,
+    "video": { "codec": "h264", "encoder": "libx264", "crf": 20, "preset": "medium" },
+    "audio": {
+      "codec": "aac", "bitrate_kbps": 192, "sample_rate": 48000,
+      "loudness": { "enabled": true, "target_lufs": -14, "true_peak_dbtp": -1.5, "lra": 11 }
+    },
+    "when_silent": "omit_audio_stream",
+    "max_duration_s": 15,
+    "safe_area": {
+      "profile": "youtube_shorts", "reference_px": [1080, 1920],
+      "insets_px": { "top": 320, "bottom": 400, "left": 60, "right": 180 }
+    }
+  },
+  "audience": { "country": "CA", "region": "CA-ON", "language": "en-CA", "spelling": "en-CA", "units": "metric" },
+  "compliance": {
+    "rights": { "confirmed": false, "confirmed_at": null, "statement_version": 1 },
+    "reused_content_warning": { "dismissed_at": null }
+  },
+  "voice": { "provider": "none", "voice_id": "", "rate_pct": 0 },
+  "sources": {
+    "src_01JDXLANDSCAPE": {
+      "kind": "video", "origin": "local_file", "ownership": "own",
+      "path": "C:/Users/ADMIN/Videos/hike-lookout-4k.mp4", "display_name": "hike-lookout-4k.mp4",
+      "url": null, "attribution": null, "gameplay_clip_id": null, "transcript": null,
+      "fingerprint": {
+        "size_bytes": 412339001, "mtime": 1795950000.0,
+        "sample_sha256": "dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33",
+        "duration_s": 95.3, "width": 3840, "height": 2160, "fps": 29.97, "rotation": 0,
+        "has_audio": true, "video_codec": "h264", "audio_codec": "aac"
+      },
+      "imported_at": "2026-11-25T19:10:20Z"
+    }
+  },
+  "segments": {
+    "seg_01JDXLOOKOUT13": {
+      "source_id": "src_01JDXLANDSCAPE", "in_s": 41.5, "out_s": 54.5,
+      "label": "Lookout reveal", "created_by": "manual", "pick": null
+    }
+  },
+  "scenes": [
+    {
+      "id": "scn_01JDXQUICKMAIN", "name": "Lookout reveal", "enabled": true,
+      "duration": { "driver": "primary", "fixed_s": null, "tail_pad_s": 0 },
+      "layout": { "type": "full", "background_color": "#000000" },
+      "layers": {
+        "primary": {
+          "type": "segment", "segment_id": "seg_01JDXLOOKOUT13",
+          "reframe": {
+            "mode": "fill", "focus": { "x": 0.62, "y": 0.48 }, "zoom": 1.0,
+            "keyframes": [
+              { "at_s": 0, "x": 0.62, "y": 0.48, "zoom": 1.0 },
+              { "at_s": 13, "x": 0.40, "y": 0.48, "zoom": 1.15 }
+            ]
+          },
+          "playback": { "speed": 1, "when_short": "freeze_last", "loop_crossfade_s": 0, "continue_from_previous": false }
+        },
+        "secondary": null
+      },
+      "narration": null,
+      "audio": {
+        "primary": { "enabled": true, "gain_db": 0, "duck_under_narration": false },
+        "secondary": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "narration": { "enabled": false, "gain_db": 0, "duck_under_narration": false },
+        "music": { "enabled": false }
+      },
+      "captions": { "mode": "off", "manual_cues": [], "word_edits": [] },
+      "overlays": { "rank_badge": { "visible": false }, "label": { "visible": false, "text": null }, "reddit_card": null, "texts": [] },
+      "rank": { "include": false },
+      "transition_in": { "type": "cut", "duration_s": 0 },
+      "sfx": []
+    }
+  ],
+  "ranking": {
+    "enabled": false,
+    "direction": "descending",
+    "badge": {
+      "format": "#{n}", "position": "top_left",
+      "style": { "font_family": "Anton", "font_size_px": 96, "color": "#FFFFFF", "stroke_color": "#000000", "stroke_px": 8, "box_color": null, "uppercase": true }
+    },
+    "reveal": "current_only"
+  },
+  "audio": {
+    "music": null,
+    "ducking": { "enabled": true, "depth_db": -12, "attack_ms": 120, "release_ms": 350 },
+    "edge_fade_ms": 20
+  },
+  "captions": {
+    "enabled": false,
+    "default_mode": "off",
+    "style": {
+      "preset": "clean",
+      "text": { "font_family": "Inter", "font_size_px": 72, "color": "#FFFFFF", "stroke_color": "#000000", "stroke_px": 0, "box_color": null, "uppercase": false },
+      "active_color": null, "emphasis_color": null, "max_words": 3, "max_chars": 18
+    },
+    "anchor_y": 0.72,
+    "emphasis_words": []
+  },
+  "overlays": {
+    "hook": {
+      "text": "Wait for the view",
+      "start_s": 0, "duration_s": 2.5, "anchor_y": 0.1,
+      "style": { "font_family": "Anton", "font_size_px": 88, "color": "#FFFFFF", "stroke_color": "#000000", "stroke_px": 6, "box_color": "#000000B3", "uppercase": true }
+    },
+    "title_bar": null,
+    "watermark": null
+  }
+}
