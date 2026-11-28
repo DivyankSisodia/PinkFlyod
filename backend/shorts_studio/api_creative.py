@@ -46,6 +46,15 @@ class TakeBody(BaseModel):
     model_id: str | None = None
 
 
+class SpeedTakeBody(BaseModel):
+    scene_id: str
+    text: str = Field(max_length=600)
+    audio_name: str
+    speed: float = Field(ge=0.5, le=2.5)
+    words: list = []
+    timing: str = "estimated"
+
+
 class GameplayAddBody(BaseModel):
     paths: list[str] = Field(min_length=1, max_length=50)
     tags: list[str] = []
@@ -184,7 +193,7 @@ def install(app: FastAPI, *, settings: Settings, db: Database, jobs: JobManager,
                                       on_audio=lambda: ctx.progress(80, "Preparing audio and caption timings"))
             except (takes.TakeError, engines.SpeechError, providers.ProviderError) as e:
                 raise JobError(str(e)) from e
-            return {"scene_id": body.scene_id, "take": take}
+            return {"scene_id": body.scene_id, "take": take, "speed": body.speed}
         return {"job_id": jobs.submit("take", work, project_id=pid, pool="media")}
 
     @app.post("/api/projects/{pid}/takes/upload")
@@ -205,6 +214,16 @@ def install(app: FastAPI, *, settings: Settings, db: Database, jobs: JobManager,
         finally:
             Path(tmp).unlink(missing_ok=True)
         return {"scene_id": scene_id, "take": take}
+
+    @app.post("/api/projects/{pid}/takes/speed")
+    async def speed_take(pid: str, body: SpeedTakeBody):
+        load(pid)
+        try:
+            take = await asyncio.to_thread(takes.retempo, settings, body.audio_name, body.text, body.speed,
+                                           body.words, body.timing)
+        except (takes.TakeError, ff.FFmpegError) as e:
+            raise HTTPException(422, str(e)) from None
+        return {"scene_id": body.scene_id, "take": take, "speed": body.speed}
 
     @app.get("/api/takes/{name}")
     def take_audio(name: str):

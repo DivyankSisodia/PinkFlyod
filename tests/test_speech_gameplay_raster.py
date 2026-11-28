@@ -101,6 +101,33 @@ def test_take_files_are_only_served_by_key(settings):
     assert takes.take_file(settings, "0" * 64 + ".wav") is None
 
 
+@needs_ffmpeg
+def test_retempo_speeds_up_existing_take_and_scales_words(settings, tmp_path):
+    from shorts_studio.render.ffmpeg import run
+    rec = tmp_path / "voice.wav"
+    run(["-f", "lavfi", "-i", "sine=f=300:d=2.0", str(rec)])
+    base = takes.from_audio(settings, rec, "Hello fast world.", "recorded")
+    words = [["Hello", 0.0, 0.4], ["fast", 0.5, 1.0], ["world.", 1.1, 1.8]]
+
+    fast_125 = takes.retempo(settings, base["audio_path"].rsplit("/", 1)[-1], "Hello fast world.", 1.25, words, "native")
+    assert 1.4 <= fast_125["duration_s"] <= 1.8
+
+    # Switching from 1.25x to 1.5x and back to 1.25x must stretch from the 1.0x original, never compounding.
+    fast_150 = takes.retempo(settings, fast_125["audio_path"].rsplit("/", 1)[-1], "Hello fast world.", 1.5, fast_125["words"], "native")
+    assert 1.1 <= fast_150["duration_s"] <= 1.5
+    assert fast_150["timing"] == base["timing"]
+    assert fast_150["words"][-1][2] <= fast_150["duration_s"] + 0.01
+
+    back_125 = takes.retempo(settings, fast_150["audio_path"].rsplit("/", 1)[-1], "Hello fast world.", 1.25, fast_150["words"], "native")
+    assert back_125["id"] == fast_125["id"]
+    assert back_125["duration_s"] == fast_125["duration_s"]
+
+    # 1.0x restores the exact original take.
+    reset = takes.retempo(settings, fast_150["audio_path"].rsplit("/", 1)[-1], "Hello fast world.", 1.0, fast_150["words"], "native")
+    assert reset["id"] == base["id"]
+    assert reset["duration_s"] == base["duration_s"]
+
+
 # ── gameplay library ─────────────────────────────────────────────────────
 def _overlap(a, need, used):
     return sum(max(0.0, min(a + need, u1) - max(a, u0)) for u0, u1 in used)

@@ -6,6 +6,7 @@ import { connectEvents } from "./events"
 import "./styles.css"
 import "./styles-p2.css"
 import "./styles-cleanup.css"
+import "./styles-modern.css"
 
 async function start() {
   await initSession()

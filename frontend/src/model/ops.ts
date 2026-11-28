@@ -428,6 +428,29 @@ export function setVoice(doc: Project, patch: Partial<Project["voice"]>) {
   else if (patch.model_id !== undefined) doc.voice.model_id = patch.model_id
 }
 
+/** Override one scene's voice (or pass null to follow the project voice again). */
+export function setSceneVoice(doc: Project, sceneId: string, patch: Partial<Project["voice"]> | null) {
+  const scene = sceneById(doc, sceneId)
+  if (!scene.narration) return
+  if (patch === null) {
+    scene.narration.voice = null
+    return
+  }
+  const cur = scene.narration.voice ?? { ...doc.voice }
+  const next: Project["voice"] = { ...cur }
+  if (patch.provider) next.provider = patch.provider
+  if (patch.voice_id !== undefined) next.voice_id = patch.voice_id
+  if (patch.rate_pct !== undefined) next.rate_pct = Math.round(clamp(patch.rate_pct, -50, 100))
+  if (next.provider !== "elevenlabs") delete next.model_id
+  else if (patch.model_id !== undefined) next.model_id = patch.model_id
+  scene.narration.voice = next
+}
+
+/** Clear per-scene voice overrides so all narrated scenes use the project voice. */
+export function clearSceneVoiceOverrides(doc: Project) {
+  for (const s of doc.scenes) if (s.narration) s.narration.voice = null
+}
+
 /** The name the API serves a take's audio under: /api/takes/<key>.wav */
 export function takeFileName(audioPath: string): string {
   return audioPath.split("/").pop() ?? ""
@@ -683,6 +706,97 @@ export function splitScene(doc: Project, sceneId: string, t: number): string | n
   second.sfx = second.sfx.filter((s) => s.at_s >= t).map((s) => ({ ...s, at_s: round3(s.at_s - t) }))
   scene.sfx = scene.sfx.filter((s) => s.at_s < t)
   return newId_
+}
+
+/** Move a scene's voiceover onto a new muted intro scene using a random slice of the same video, lasting until
+ *  the voiceover finishes, then play the original video scene with its own audio. Returns the intro scene id. */
+export function splitVoiceoverToIntroClip(doc: Project, sceneId: string, rand: () => number = Math.random): string | null {
+  const i = doc.scenes.findIndex((s) => s.id === sceneId)
+  if (i < 0) return null
+  const scene = doc.scenes[i]
+  if (!scene.narration) return null
+  const p = primarySegment(doc, scene)
+  if (!p) return null
+  const src = doc.sources[p.seg.source_id]
+  if (!src || src.kind !== "video") return null
+
+  const tailPad = 0.15
+  const take = scene.narration.take
+  const words = scene.narration.text.split(/\s+/).filter(Boolean).length
+  const voiceDur = take
+    ? scene.narration.offset_s + take.duration_s + tailPad
+    : scene.narration.offset_s + Math.max(1, words / 2.7) + tailPad
+
+  const srcDur = src.fingerprint.duration_s ?? Math.max(0.1, p.seg.out_s - p.seg.in_s)
+  const minLen = 1 / doc.output.fps
+  const clipLen = Math.min(srcDur, Math.max(minLen, voiceDur))
+  const maxStart = Math.max(0, srcDur - clipLen)
+  const inS = round3(clamp(rand(), 0, 1) * maxStart)
+  const outS = round3(Math.min(srcDur, inS + clipLen))
+
+  const intro: Scene = JSON.parse(JSON.stringify(scene))
+  intro.id = newId("scn")
+  intro.name = `${scene.name} (voiceover)`.slice(0, 80)
+
+  const introSegId = newId("seg")
+  doc.segments[introSegId] = {
+    source_id: p.seg.source_id, in_s: inS, out_s: outS, label: "Random voiceover clip",
+    created_by: "manual", pick: null,
+  }
+  intro.layers.primary = {
+    ...intro.layers.primary,
+    type: "segment",
+    segment_id: introSegId,
+    playback: { ...(intro.layers.primary.playback ?? playback()), when_short: "loop" },
+  }
+  if (intro.layers.secondary?.type === "segment" && intro.layers.secondary.segment_id) {
+    const secSegId = newId("seg")
+    doc.segments[secSegId] = JSON.parse(JSON.stringify(doc.segments[intro.layers.secondary.segment_id]))
+    intro.layers.secondary.segment_id = secSegId
+  }
+
+  intro.duration = { driver: "narration", fixed_s: null, tail_pad_s: tailPad }
+  intro.audio.primary.enabled = false
+  intro.audio.primary.duck_under_narration = false
+  intro.audio.secondary.enabled = false
+  intro.audio.narration = { ...scene.audio.narration, enabled: true }
+  intro.sfx = []
+  intro.overlays.texts = []
+  intro.rank.include = false
+  intro.overlays.rank_badge.visible = false
+
+  // Original video plays right after the intro with its own sound restored and no clashing voiceover.
+  scene.narration = null
+  scene.audio.narration.enabled = false
+  scene.audio.primary.enabled = Boolean(src.fingerprint.has_audio)
+  scene.audio.primary.duck_under_narration = false
+  scene.captions.word_edits = []
+  if (scene.duration.driver === "narration") {
+    scene.duration = { driver: "primary", fixed_s: null, tail_pad_s: 0 }
+  }
+
+  doc.scenes.splice(i, 0, intro)
+  if (doc.output.max_duration_s !== null && totalSeconds(doc) > doc.output.max_duration_s) {
+    doc.output.max_duration_s = null
+  }
+  return intro.id
+}
+
+/** Pick a fresh random slice of the primary video source for a scene (e.g. to re-roll a voiceover intro clip). */
+export function shuffleSceneClip(doc: Project, sceneId: string, rand: () => number = Math.random): boolean {
+  const scene = sceneById(doc, sceneId)
+  const p = primarySegment(doc, scene)
+  if (!p) return false
+  const src = doc.sources[p.seg.source_id]
+  if (!src || src.kind !== "video") return false
+  const srcDur = src.fingerprint.duration_s ?? 0
+  if (srcDur <= 0) return false
+  const targetLen = Math.min(srcDur, Math.max(1 / doc.output.fps, sceneFrames(doc, scene) / doc.output.fps))
+  const maxStart = Math.max(0, srcDur - targetLen)
+  const inS = round3(clamp(rand(), 0, 1) * maxStart)
+  p.seg.in_s = inS
+  p.seg.out_s = round3(Math.min(srcDur, inS + targetLen))
+  return true
 }
 
 /** A new scene using ``sourceId`` from ``inS`` to ``outS``; mirrors defaults.scene_from_segment in Python. */

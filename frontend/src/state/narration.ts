@@ -1,10 +1,23 @@
 // Voice takes: generate, record or import one line's take, then attach it to that scene only. Jobs live outside
 // any component, so switching scenes while a voice is being made doesn't lose it.
-import { api } from "../api"
+import { api, type VoiceProvider } from "../api"
 import { waitJob } from "../events"
 import * as ops from "../model/ops"
-import type { Project, Take } from "../model/types"
+import type { Project, Take, VoiceOption } from "../model/types"
 import { useEditor } from "./editor"
+
+const voiceCache: Partial<Record<"edge" | "system", Promise<{ online: boolean; voices: VoiceOption[] }>>> = {}
+
+export function loadVoices(provider: VoiceProvider) {
+  if (provider === "elevenlabs") return api.voices(provider)
+  voiceCache[provider] ??= api.voices(provider).catch(() => ({ online: false, voices: [] }))
+  return voiceCache[provider]!
+}
+
+export function sortVoices(voices: VoiceOption[], locale: string): VoiceOption[] {
+  return voices.slice().sort((a, b) =>
+    Number(b.locale === locale) - Number(a.locale === locale) || a.name.localeCompare(b.name))
+}
 
 export type TakeState = "none" | "missing" | "ready" | "stale" | "working"
 
@@ -82,5 +95,36 @@ export async function uploadTake(sceneId: string, file: Blob, filename: string, 
     useEditor.getState().setTakeJob(sceneId, null)
   } catch (e) {
     useEditor.getState().setTakeJob(sceneId, { pct: 0, stage: "", error: (e as Error).message })
+  }
+}
+
+const takeSpeeds: Record<string, number> = {}
+
+export function takeSpeed(takeId: string | undefined): number {
+  return takeId ? (takeSpeeds[takeId] ?? 1) : 1
+}
+
+/** Time-stretch an existing take WAV from its 1.0x original on the server (preserves pitch & timings). */
+export async function speedUpTake(sceneId: string, speed: number) {
+  const s = useEditor.getState()
+  const scene = s.doc?.scenes.find((x) => x.id === sceneId)
+  const take = scene?.narration?.take
+  if (!s.projectId || !scene?.narration || !take) return
+  s.setTakeJob(sceneId, { pct: 40, stage: speed === 1 ? "Restoring 1.0× speed" : `Adjusting speed (${speed.toFixed(2)}×)` })
+  try {
+    const audioName = ops.takeFileName(take.audio_path)
+    const r = await api.speedTake(s.projectId, {
+      scene_id: sceneId, text: scene.narration.text, audio_name: audioName,
+      speed, words: take.words, timing: take.timing,
+    })
+    takeSpeeds[r.take.id] = r.speed ?? speed
+    attach(sceneId, r.take)
+    useEditor.getState().setTakeJob(sceneId, null)
+  } catch (e) {
+    const msg = (e as Error).message
+    const hint = msg.includes("404") || msg.toLowerCase().includes("not found")
+      ? "Restart Shorts Studio once to enable instant local speed-up, or change Pace and click Regenerate voice."
+      : msg
+    useEditor.getState().setTakeJob(sceneId, { pct: 0, stage: "", error: hint })
   }
 }

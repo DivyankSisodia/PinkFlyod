@@ -5,15 +5,8 @@ import { api, type ProviderOption, type VoiceProvider } from "../../api"
 import * as ops from "../../model/ops"
 import type { VoiceOption } from "../../model/types"
 import { useEditor } from "../../state/editor"
-import { generateAllNeeded, takeState } from "../../state/narration"
+import { generateAllNeeded, loadVoices, sortVoices, takeState } from "../../state/narration"
 import { Choice, Section, Slider, TextField, dbFmt, secFmt } from "./controls"
-
-const voiceCache: Partial<Record<"edge" | "system", Promise<{ online: boolean; voices: VoiceOption[] }>>> = {}
-function loadVoices(p: VoiceProvider) {
-  if (p === "elevenlabs") return api.voices(p)
-  voiceCache[p] ??= api.voices(p).catch(() => ({ online: false, voices: [] }))
-  return voiceCache[p]!
-}
 
 export function ProjectSection() {
   const doc = useEditor((s) => s.doc)!
@@ -45,8 +38,8 @@ export function ProjectSection() {
   }, [provider])
 
   const locale = doc.audience.language
-  const voiceList = (voices?.voices ?? []).slice().sort((a, b) =>
-    Number(b.locale === locale) - Number(a.locale === locale) || a.name.localeCompare(b.name))
+  const voiceList = sortVoices(voices?.voices ?? [], locale)
+  const overriddenCount = doc.scenes.filter((s) => s.narration?.voice).length
 
   async function chooseVoice(next: VoiceProvider) {
     setVoiceError("")
@@ -172,8 +165,17 @@ export function ProjectSection() {
         {provider === "edge" && voices && !voices.online && (
           <div className="hint">Offline: showing a built-in list. Edge voices need internet; the computer's voice works offline.</div>
         )}
-        <Slider label="Pace" value={doc.voice.rate_pct} min={-30} max={provider === "elevenlabs" ? 20 : 50} step={5} fmt={(v) => `${v > 0 ? "+" : ""}${v}%`}
+        <Slider label="Pace" value={doc.voice.rate_pct} min={-30} max={provider === "elevenlabs" ? 100 : 50} step={5} fmt={(v) => `${v > 0 ? "+" : ""}${v}%`}
           onChange={(v) => apply((d) => ops.setVoice(d, { rate_pct: v }))} />
+        {overriddenCount > 0 && (
+          <button
+            disabled={!!busy}
+            data-testid="apply-project-voice-all"
+            onClick={() => apply((d) => ops.clearSceneVoiceOverrides(d))}
+          >
+            Use this voice for all {overriddenCount} custom scene{overriddenCount > 1 ? "s" : ""}
+          </button>
+        )}
         {narrated.length > 0 && (
           <button className={needing ? "primary" : ""} disabled={!needing || !!busy} onClick={() => void generateAll()}
             data-testid="generate-all">{needing ? `Make ${needing} missing or changed voice${needing > 1 ? "s" : ""}` : "All voices ready"}</button>

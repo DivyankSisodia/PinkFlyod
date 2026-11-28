@@ -1,29 +1,83 @@
 // One scene's voice line: edit the text, then generate, record or import a take for this line only.
 import { useEffect, useRef, useState } from "react"
-import { takeUrl } from "../../api"
+import { api, takeUrl, type ProviderOption, type VoiceProvider } from "../../api"
 import * as ops from "../../model/ops"
-import type { Scene } from "../../model/types"
+import type { Scene, VoiceOption } from "../../model/types"
 import { useEditor } from "../../state/editor"
-import { effectiveVoice, generateTake, takeState, uploadTake } from "../../state/narration"
+import { effectiveVoice, generateTake, loadVoices, sortVoices, speedUpTake, takeSpeed, takeState, uploadTake } from "../../state/narration"
 import { Section, Slider, TextField, dbFmt, secFmt } from "./controls"
 
 const STATE_LABEL = {
-  none: "No line", missing: "No voice yet", ready: "Voice ready", stale: "Line changed: regenerate", working: "Working…",
+  none: "No line", missing: "No voice yet", ready: "Voice ready", stale: "Changed: regenerate", working: "Working…",
 } as const
 
 export function NarrationSection({ scene }: { scene: Scene }) {
   const doc = useEditor((s) => s.doc)!
   const job = useEditor((s) => s.takeJobs[scene.id])
   useEditor((s) => s.timeline)               // re-render when staleness is recomputed
-  const { apply } = useEditor.getState()
+  const { apply, select, setPlayhead } = useEditor.getState()
+  const primarySeg = ops.primarySegment(doc, scene)
+  const primarySrc = primarySeg ? doc.sources[primarySeg.seg.source_id] : null
+  const isVideoScene = primarySrc?.kind === "video"
   const [recording, setRecording] = useState<{ rec: MediaRecorder; started: number } | null>(null)
   const [recError, setRecError] = useState<string | null>(null)
   const [elapsed, setElapsed] = useState(0)
+  const [voices, setVoices] = useState<{ online: boolean; voices: VoiceOption[] } | null>(null)
+  const [models, setModels] = useState<ProviderOption[]>([])
+  const [voiceError, setVoiceError] = useState("")
+  const [switchingVoice, setSwitchingVoice] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const n = scene.narration
   const state = takeState(scene.id)
   const voice = effectiveVoice(doc, scene.id)
+  const provider = voice.provider === "edge" || voice.provider === "system" || voice.provider === "elevenlabs"
+    ? voice.provider : null
+
+  useEffect(() => {
+    if (!provider) return
+    let live = true
+    setVoices(null)
+    setVoiceError("")
+    void loadVoices(provider).then((v) => { if (live) setVoices(v) })
+      .catch((e) => { if (live) setVoiceError((e as Error).message) })
+    if (provider === "elevenlabs") {
+      void api.providerOptions("elevenlabs").then((r) => { if (live) setModels(r.options) })
+        .catch(() => { if (live) setModels([]) })
+    }
+    return () => { live = false }
+  }, [provider])
+
+  const voiceList = sortVoices(voices?.voices ?? [], doc.audience.language)
+
+  async function chooseSceneVoice(next: VoiceProvider | "project") {
+    setVoiceError("")
+    if (next === "project") {
+      apply((d) => ops.setSceneVoice(d, scene.id, null))
+      return
+    }
+    if (next !== "elevenlabs") {
+      apply((d) => ops.setSceneVoice(d, scene.id, {
+        provider: next,
+        voice_id: next === "edge" ? (d.audience.country === "CA" ? "en-CA-LiamNeural" : "en-US-AndrewNeural") : "",
+      }))
+      return
+    }
+    setSwitchingVoice(true)
+    try {
+      const defaults = await api.providers()
+      apply((d) => ops.setSceneVoice(d, scene.id, {
+        provider: "elevenlabs",
+        voice_id: defaults.elevenlabs_voice,
+        model_id: defaults.elevenlabs_model,
+        rate_pct: Math.max(-30, Math.min(100, voice.rate_pct)),
+      }))
+    } catch (e) {
+      setVoiceError((e as Error).message)
+    } finally {
+      setSwitchingVoice(false)
+    }
+  }
 
   useEffect(() => {
     if (!recording) return
@@ -80,6 +134,42 @@ export function NarrationSection({ scene }: { scene: Scene }) {
   return (
     <Section title="Voice" testid="narration-section"
       extra={<span className={`take-state ${state}`} data-testid="take-state">{STATE_LABEL[state]}</span>}>
+      {isVideoScene && scene.duration.driver !== "narration" && (
+        <div className="subgroup">
+          <div className="hint">
+            Avoid audio clash: play this voiceover over a muted random clip from the video first, then start the video with its own sound.
+          </div>
+          <button
+            className="primary"
+            disabled={busy}
+            data-testid="split-voiceover-intro"
+            onClick={() => {
+              let introId: string | null = null
+              apply((d) => { introId = ops.splitVoiceoverToIntroClip(d, scene.id) })
+              if (introId) {
+                select(introId)
+                setPlayhead(0)
+              }
+            }}
+          >
+            Play voiceover over random clip first
+          </button>
+        </div>
+      )}
+      {isVideoScene && scene.duration.driver === "narration" && (
+        <div className="subgroup">
+          <div className="hint">
+            Playing a muted clip until the voiceover ends. Don&apos;t like this moment?
+          </div>
+          <button
+            disabled={busy}
+            data-testid="shuffle-voiceover-clip"
+            onClick={() => apply((d) => { ops.shuffleSceneClip(d, scene.id) })}
+          >
+            Shuffle random clip
+          </button>
+        </div>
+      )}
       <TextField multiline value={n.text} label="Voice line" testid="narration-text" maxLength={600}
         placeholder="What the voice says in this scene" onCommit={(v) => apply((d) => ops.setNarrationText(d, scene.id, v))} />
       <div className="hint">Ctrl+Enter or click away to apply. Only this line's voice is redone.</div>
@@ -102,11 +192,69 @@ export function NarrationSection({ scene }: { scene: Scene }) {
       {job && !job.error && <p className="hint">{job.stage || "Working"}…</p>}
       {recError && <p className="error-text">{recError}</p>}
       {n.take && (
-        <div className="hint" data-testid="take-facts">
-          {n.take.method === "tts" ? `${n.take.provider} · ${n.take.voice_id || "default voice"}` : n.take.method} ·
-          {" "}{n.take.duration_s.toFixed(2)} s · word timing {n.take.timing}
-        </div>
+        <>
+          <div className="hint" data-testid="take-facts">
+            {n.take.method === "tts" ? `${n.take.provider} · ${n.take.voice_id || "default voice"}` : n.take.method} ·
+            {" "}{n.take.duration_s.toFixed(2)} s · word timing {n.take.timing}
+          </div>
+          <div className="subgroup">
+            <div className="hint">Playback speed (always stretches from the 1.0× original):</div>
+            <div className="seg-buttons">
+              {[1, 1.15, 1.25, 1.5].map((spd) => (
+                <button key={spd} disabled={busy} data-testid={`speed-take-${spd}`}
+                  className={Math.abs(takeSpeed(n.take?.id) - spd) < 0.01 ? "on" : ""}
+                  onClick={() => void speedUpTake(scene.id, spd)}>
+                  {spd === 1 ? "1.0×" : `${spd}×`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
       )}
+      <div className="subgroup" data-testid="scene-voice-controls">
+        <label className="slider"><span>Agent</span>
+          <select value={n.voice ? (provider ?? "edge") : "project"} disabled={busy || switchingVoice}
+            data-testid="scene-voice-provider"
+            onChange={(e) => void chooseSceneVoice(e.target.value as VoiceProvider | "project")}>
+            <option value="project">Project default ({doc.voice.provider === "none" ? "not set" : doc.voice.provider})</option>
+            <option value="edge">Edge voices (free, online)</option>
+            <option value="system">This computer's voice (offline)</option>
+            <option value="elevenlabs">ElevenLabs</option>
+          </select>
+        </label>
+        {provider && (
+          <label className="slider"><span>Speaker</span>
+            <select value={voice.voice_id} disabled={busy} data-testid="scene-voice-id"
+              onChange={(e) => apply((d) => ops.setSceneVoice(d, scene.id, { voice_id: e.target.value }))}>
+              {provider === "system" && <option value="">default</option>}
+              {provider === "elevenlabs" && <option value="">Choose a speaker</option>}
+              {voice.voice_id && !voiceList.some((v) => v.id === voice.voice_id) &&
+                <option value={voice.voice_id}>{voice.voice_id}</option>}
+              {voiceList.map((v) => <option key={v.id} value={v.id}>{v.name}{v.locale && ` (${v.locale}${v.gender ? `, ${v.gender}` : ""})`}</option>)}
+            </select>
+          </label>
+        )}
+        {provider === "elevenlabs" && (
+          <label className="slider"><span>Model</span>
+            <select value={voice.model_id ?? ""} disabled={busy} data-testid="scene-elevenlabs-model"
+              onChange={(e) => apply((d) => ops.setSceneVoice(d, scene.id, { model_id: e.target.value }))}>
+              {!voice.model_id && <option value="">Choose a model</option>}
+              {voice.model_id && !models.some((m) => m.id === voice.model_id) &&
+                <option value={voice.model_id}>{voice.model_id}</option>}
+              {models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+          </label>
+        )}
+        {provider && (
+          <Slider label="Pace" value={voice.rate_pct} min={-30} max={provider === "elevenlabs" ? 100 : 50} step={5}
+            testid="scene-voice-pace" fmt={(v) => `${v > 0 ? "+" : ""}${v}%`}
+            onChange={(v) => apply((d) => ops.setSceneVoice(d, scene.id, { rate_pct: v }))} />
+        )}
+        {voiceError && <div className="error-text" role="status">{voiceError}</div>}
+        {provider === "edge" && voices && !voices.online && (
+          <div className="hint">Offline: showing built-in Edge list.</div>
+        )}
+      </div>
       <Slider label="Starts after" value={n.offset_s} min={0} max={3} step={0.05} fmt={secFmt}
         onChange={(v) => apply((d) => ops.setNarrationOffset(d, scene.id, v))} />
       <label className="check">

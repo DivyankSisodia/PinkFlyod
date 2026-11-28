@@ -120,6 +120,9 @@ export const api = {
     return call<{ scene_id: string; take: Take }>("POST", `/api/projects/${pid}/takes/upload`, undefined,
       { body: form })
   },
+  speedTake: (pid: string, body: {
+    scene_id: string; text: string; audio_name: string; speed: number; words: Take["words"]; timing: Take["timing"]
+  }) => call<{ scene_id: string; take: Take; speed: number }>("POST", `/api/projects/${pid}/takes/speed`, body),
   gameplay: () => call<{ clips: GameplayClip[] }>("GET", "/api/gameplay"),
   importUrls: (body: {
     youtube?: string; instagram?: string; gameplay?: string; tags?: string[];

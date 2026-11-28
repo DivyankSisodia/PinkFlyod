@@ -314,3 +314,62 @@ describe("frame-accurate durations match the resolver", () => {
     expect(ops.totalSeconds(example("silent-countdown"))).toBeCloseTo(315 / 30, 9)
   })
 })
+
+describe("voiceover intro clip", () => {
+  const take = (seconds: number) => ({
+    ...example("narrated-explainer").scenes[0].narration!.take!, id: "tk_introclip1", duration_s: seconds,
+  })
+  it("moves narration onto a muted random clip before the video and restores original video audio", () => {
+    const base = produce(example("quick-short-13s"), (d) => {
+      ops.setNarrationText(d, "scn_01JDXQUICKMAIN", "Wait until you see what happens next.")
+      ops.attachTake(d, "scn_01JDXQUICKMAIN", take(5.5))
+    })
+    let introId: string | null = null
+    const after = produce(base, (d) => {
+      introId = ops.splitVoiceoverToIntroClip(d, "scn_01JDXQUICKMAIN", () => 0.4)
+    })
+    expectValid(after)
+    expect(introId).toBeTruthy()
+    expect(after.scenes).toHaveLength(2)
+    const [intro, main] = after.scenes
+    expect(intro.id).toBe(introId)
+    expect(intro.duration.driver).toBe("narration")
+    expect(intro.narration?.take?.duration_s).toBe(5.5)
+    expect(intro.audio.primary.enabled).toBe(false)
+    expect(intro.audio.narration.enabled).toBe(true)
+    expect(intro.layers.primary.playback?.when_short).toBe("loop")
+    expect(main.id).toBe("scn_01JDXQUICKMAIN")
+    expect(main.narration).toBeNull()
+    expect(main.audio.narration.enabled).toBe(false)
+    expect(main.audio.primary.enabled).toBe(true)
+    // Total exceeds 15 s Quick Short cap, so the cap is lifted cleanly.
+    expect(after.output.max_duration_s).toBeNull()
+
+    // Shuffling picks a new slice from the same video source.
+    const beforeIn = after.segments[intro.layers.primary.segment_id!].in_s
+    const shuffled = produce(after, (d) => {
+      expect(ops.shuffleSceneClip(d, intro.id, () => 0.85)).toBe(true)
+    })
+    expectValid(shuffled)
+    expect(shuffled.segments[intro.layers.primary.segment_id!].in_s).not.toBe(beforeIn)
+  })
+
+  it("supports per-scene voice speed/provider override and clearing overrides", () => {
+    const base = produce(example("quick-short-13s"), (d) => {
+      ops.setNarrationText(d, "scn_01JDXQUICKMAIN", "Fast intro.")
+      ops.setSceneVoice(d, "scn_01JDXQUICKMAIN", { provider: "elevenlabs", voice_id: "v1", model_id: "m1", rate_pct: 20 })
+    })
+    expectValid(base)
+    expect(base.scenes[0].narration?.voice).toEqual({ provider: "elevenlabs", voice_id: "v1", model_id: "m1", rate_pct: 20 })
+
+    const switchedFree = produce(base, (d) => {
+      ops.setSceneVoice(d, "scn_01JDXQUICKMAIN", { provider: "edge", voice_id: "en-US-AvaNeural", rate_pct: 25 })
+    })
+    expectValid(switchedFree)
+    expect(switchedFree.scenes[0].narration?.voice).toEqual({ provider: "edge", voice_id: "en-US-AvaNeural", rate_pct: 25 })
+
+    const cleared = produce(switchedFree, (d) => ops.clearSceneVoiceOverrides(d))
+    expectValid(cleared)
+    expect(cleared.scenes[0].narration?.voice).toBeNull()
+  })
+})

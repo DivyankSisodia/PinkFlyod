@@ -1,0 +1,399 @@
+/* Modern creator-studio polish for the Editor (keeps Home/Workspace intact). */
+:root {
+  color-scheme: dark;
+  --bg: #0b0d12;
+  --panel: #12151c;
+  --panel-2: #191d27;
+  --line: rgba(255, 255, 255, 0.08);
+  --text: #eef0f6;
+  --muted: #8b93a6;
+  --accent: #ff4458;
+  --accent-2: #ff7755;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+}
+
+/* Native <dialog> modals inherit dark text/scrollbars without explicit color & color-scheme. */
+dialog,
+dialog.modal-box {
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+}
+
+dialog::backdrop {
+  background: rgba(7, 8, 11, 0.74);
+  backdrop-filter: blur(4px);
+}
+
+dialog input,
+dialog textarea,
+dialog select {
+  color: var(--text);
+  background: #0b0d12;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+}
+
+dialog input::placeholder,
+dialog textarea::placeholder {
+  color: var(--muted);
+}
+
+dialog button {
+  color: var(--text);
+}
+
+.upload-dialog .title-options button {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  color: var(--text);
+}
+
+.upload-dialog .title-options button.on {
+  border-color: var(--accent);
+  background: rgba(255, 68, 88, 0.12);
+}
+
+.upload-sources summary {
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.editor {
+  background: var(--bg);
+  grid-template-columns: 248px 1fr 376px;
+  grid-template-rows: 52px 1fr 164px;
+}
+
+/* Top bar */
+.topbar {
+  background: rgba(18, 21, 28, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  padding: 0 14px;
+  gap: 8px;
+}
+
+.topbar .back {
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  transition: background 0.14s, color 0.14s;
+}
+
+.topbar .back:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.title-input {
+  border-radius: 7px;
+  padding: 5px 10px;
+  transition: border-color 0.14s, background 0.14s;
+}
+
+.title-input:hover,
+.title-input:focus {
+  background: #0b0d12;
+  border-color: rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+
+.topbar button {
+  border-radius: 8px;
+  font-size: 12.5px;
+  padding: 6px 11px;
+  transition: background 0.14s, border-color 0.14s, transform 0.1s;
+}
+
+.topbar button.primary {
+  background: linear-gradient(135deg, var(--accent), #e6354a);
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(255, 68, 88, 0.28);
+}
+
+.topbar button.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff5467, var(--accent));
+}
+
+/* Panels & controls */
+.panel {
+  background: var(--panel);
+}
+
+.panel.left {
+  border-right: 1px solid var(--line);
+}
+
+.panel.right.inspector-modern {
+  border-left: 1px solid var(--line);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.inspector-tabs {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+  padding: 8px 10px;
+  background: rgba(18, 21, 28, 0.96);
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+
+.inspector-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 7px 2px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+}
+
+.inspector-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border-color: transparent;
+}
+
+.inspector-tab.active {
+  background: var(--panel-2);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+.inspector-tab.active svg {
+  color: var(--accent);
+}
+
+.tab-dot {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ok);
+}
+
+.tab-dot.warn {
+  background: var(--err);
+}
+
+.inspector-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px 24px;
+}
+
+/* Form controls */
+.editor select,
+.editor input[type="number"],
+.editor input[type="text"],
+.editor input:not([type]),
+.editor textarea {
+  background: #0b0d12;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  transition: border-color 0.14s, box-shadow 0.14s;
+}
+
+.editor select:focus,
+.editor input:focus,
+.editor textarea:focus {
+  outline: none;
+  border-color: rgba(255, 68, 88, 0.7);
+  box-shadow: 0 0 0 2px rgba(255, 68, 88, 0.15);
+}
+
+.editor button {
+  border-radius: 8px;
+  transition: background 0.14s, border-color 0.14s;
+}
+
+/* Segmented controls */
+.seg-buttons {
+  background: #0b0d12;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.seg-buttons button {
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--muted);
+  font-weight: 500;
+  padding: 5px 6px;
+}
+
+.seg-buttons button:hover:not(.on) {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.seg-buttons button.on {
+  background: var(--panel-2);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* Sleek range sliders */
+.slider input[type="range"],
+.scrub {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #252a36;
+  border-radius: 999px;
+  outline: none;
+}
+
+.slider input[type="range"]::-webkit-slider-thumb,
+.scrub::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid var(--accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.slider input[type="range"]::-webkit-slider-thumb:hover,
+.scrub::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* Inspector sections */
+details.section {
+  border-bottom: 1px solid var(--line);
+  padding: 4px 0 12px;
+}
+
+details.section:last-of-type {
+  border-bottom: none;
+}
+
+details.section > summary {
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.07em;
+  color: var(--text);
+  margin: 8px 0 10px;
+}
+
+.subgroup {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* Player stage */
+.center {
+  background: radial-gradient(circle at 50% 45%, #161a24 0%, #0b0d12 75%);
+}
+
+.player-canvas {
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.player-controls button.primary {
+  border-radius: 999px;
+  padding: 6px 16px;
+}
+
+/* Timeline strip */
+.strip {
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  padding: 6px 14px 10px;
+}
+
+.timeline-intro-button {
+  background: rgba(62, 207, 142, 0.14);
+  border-color: rgba(62, 207, 142, 0.45);
+  color: #7ee8b7;
+  font-weight: 600;
+  font-size: 12.5px;
+  padding: 5px 12px;
+}
+
+.timeline-intro-button:hover:not(:disabled) {
+  background: rgba(62, 207, 142, 0.24);
+  border-color: var(--ok);
+}
+
+.card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px;
+  transition: border-color 0.14s, background 0.14s;
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.card.selected {
+  border-color: var(--accent);
+  background: #202330;
+  box-shadow: 0 0 0 1px rgba(255, 68, 88, 0.25);
+}
+
+.card-actions {
+  background: rgba(11, 13, 18, 0.88);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 2px;
+  right: 6px;
+  bottom: 6px;
+  opacity: 0;
+  transition: opacity 0.14s;
+}
+
+.card:hover .card-actions,
+.card.selected .card-actions,
+.card-actions:focus-within {
+  opacity: 1;
+}
+
+.card-actions button {
+  background: transparent;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 11.5px;
+}
+
+.card-actions button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
